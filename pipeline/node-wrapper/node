@@ -11,4 +11,4 @@ if [[ ":$PATH:" != *":$NODE_WRAPPER:"* ]]; then
   export PATH="$NODE_WRAPPER:$PATH"
 fi
 
-python3.8 "$NODE_WRAPPER"/node.py "$@"
+python3 "$NODE_WRAPPER"/node.py "$@"
