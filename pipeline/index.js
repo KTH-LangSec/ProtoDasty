@@ -13,6 +13,7 @@ const NPM_INSTALL_TIMEOUT = 8 * 60 * 1000;
 const DEFAULT_RESULTS_COLL = 'results';
 
 const TAINT_ANALYSIS = __dirname + '/../taint-analysis/';
+const POLLUTION_ANALYSIS = __dirname + '/../pollution-analysis/';
 const PRE_ANALYSIS = __dirname + '/pre-analysis/';
 const SINK_ANALYSIS = __dirname + '/../sink-analysis/';
 const PACKAGE_DATA = __dirname + '/package-data/';
@@ -198,6 +199,7 @@ function execCmd(cmd, args, workingDir = null, live = false, throwOnErr = true, 
         let timedOut = false;
 
         let killTimeout;
+        // if timeout is not set, nothing will happen
         const setKillTimout = () => {
             if (timeout === -1 || killTimeout === null) return;
 
@@ -216,12 +218,10 @@ function execCmd(cmd, args, workingDir = null, live = false, throwOnErr = true, 
         childProcess.stdout.on('data', data => {
             if (live) process.stderr.write(data);
             out += data;
-
             setKillTimout();
         });
         childProcess.stderr.on('data', data => {
             if (live) process.stderr.write(data);
-
             err += data;
 
             setKillTimout();
@@ -762,6 +762,16 @@ async function runPipeline(pkgName) {
         let blacklistedProps = [];
         const resultFilename = `${resultBasePath}${sanitizedPkgName}`;
         let dbResultId = null; // the db id for the current analysis run
+
+        // run pollution analysis
+        // TODO prepare this better
+        await runAnalysisNodeWrapper(
+            POLLUTION_ANALYSIS,
+            repoPath,
+            {pkgName},
+            EXCLUDE_ANALYSIS_KEYWORDS,
+            execFile
+        );
 
         let forInRun = !cliArgs.noForIn; // make one for in run
 
