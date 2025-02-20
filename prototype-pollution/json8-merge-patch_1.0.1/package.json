@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-8268",
+  "dependencies": {
+    "json8-merge-patch": "1.0.1"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399",
+    "source2": "https://github.com/advisories/GHSA-8v9x-9xqg-r8mr"
+  },
+  "fixedVersion": "1.0.3",
+  "fixCommit": "n/a",
+  "sink": "lib/apply.js:25:12"
+}

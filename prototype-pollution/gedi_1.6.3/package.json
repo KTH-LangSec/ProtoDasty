@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7727",
+  "dependencies": {
+    "gedi": "1.6.3"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-GEDI-598803",
+    "source2": "https://github.com/advisories/GHSA-jh2m-j8pp-55rc"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "gedi.js:393:32"
+}

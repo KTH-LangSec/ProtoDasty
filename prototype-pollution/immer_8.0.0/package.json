@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-23436",
+  "dependencies": {
+    "immer": "8.0.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-IMMER-1540542",
+    "source2": "https://github.com/advisories/GHSA-33f9-j839-rf8h"
+  },
+  "fixedVersion": "9.0.6",
+  "fixCommit": "https://github.com/immerjs/immer/commit/fa671e55ee9bd42ae08cc239102b665a23958237",
+  "sink": "src/plugins/patches.ts:245:16"
+}

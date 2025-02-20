@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7618",
+  "dependencies": {
+    "sds": "3.2.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-SDS-564123",
+    "source2": "https://github.com/advisories/GHSA-cxm3-284p-qc4v"
+  },
+  "fixedVersion": "4.0.0",
+  "fixCommit": "https://github.com/monsterkodi/sds/commit/a228f025fd1be033088b7abbc0f77118d573f216",
+  "sink": "js:34:13"
+}

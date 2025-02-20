@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-23370",
+  "dependencies": {
+    "swiper": "6.5.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-SWIPER-1088062",
+    "source2": "https://github.com/advisories/GHSA-p3hc-fv2j-rp68"
+  },
+  "fixedVersion": "6.5.1",
+  "fixCommit": "https://github.com/nolimits4web/swiper/commit/9dad2739b7474f383474773d5ab898a0c29ac178",
+  "sink": "cjs/utils/utils.js:110:25"
+}

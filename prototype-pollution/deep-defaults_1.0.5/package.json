@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-25944",
+  "dependencies": {
+    "deep-defaults": "1.0.5"
+  },
+  "links": {
+    "source1": "https://www.whitesourcesoftware.com/vulnerability-database/CVE-2021-25944",
+    "source2": ""
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "lib/index.js:16:21"
+}

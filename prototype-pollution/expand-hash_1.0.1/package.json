@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-25948",
+  "dependencies": {
+    "expand-hash": "1.0.1"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-EXPANDHASH-1303101",
+    "source2": "https://github.com/advisories/GHSA-x3wr-v4wx-5qpc"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "index.js:19:13"
+}

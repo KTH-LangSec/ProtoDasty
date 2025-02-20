@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7714",
+  "dependencies": {
+    "confucious": "0.0.12"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-CONFUCIOUS-598665",
+    "source2": "https://github.com/advisories/GHSA-fmrr-mx6j-h3h5"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "confucious.js:48:21"
+}

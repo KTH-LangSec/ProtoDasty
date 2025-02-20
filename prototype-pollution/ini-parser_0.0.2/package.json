@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7617",
+  "dependencies": {
+    "ini-parser": "0.0.2"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-INIPARSER-564122",
+    "source2": "https://github.com/advisories/GHSA-96r7-mrqf-jhcc"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "index.js:14:20"
+}

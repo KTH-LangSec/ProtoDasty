@@ -1,0 +1,13 @@
+{
+  "id": "",
+  "dependencies": {
+    "smart-extend": "1.7.3"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-SMARTEXTEND-174739",
+    "source2": "https://github.com/advisories/GHSA-f8h3-rqrm-47v9"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "dist/smart-extend.js:1:2739"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7643",
+  "dependencies": {
+    "paypal-adaptive": "0.4.1"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-PAYPALADAPTIVE-565089",
+    "source2": "https://github.com/advisories/GHSA-v3r2-3fp4-rp46"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "lib/paypal-adaptive.js:31:22"
+}

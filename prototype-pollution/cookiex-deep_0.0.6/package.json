@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-23442",
+  "dependencies": {
+    "@cookiex/deep": "0.0.6"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-COOKIEXDEEP-1582793",
+    "source2": "https://github.com/advisories/GHSA-92v9-xh2q-fq9f"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "deep/dist/assigner.js:13:31"
+}

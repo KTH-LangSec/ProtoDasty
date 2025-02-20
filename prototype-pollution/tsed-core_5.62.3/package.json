@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7748",
+  "dependencies": {
+    "@tsed/core": "5.62.3"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-TSEDCORE-1019382",
+    "source2": "https://github.com/advisories/GHSA-77xq-cpvg-7xm2"
+  },
+  "fixedVersion": "5.65.7",
+  "fixCommit": "https://github.com/TypedProject/tsed/commit/1395773ddac35926cf058fc6da9fb8e82266761b",
+  "sink": "core/src/utils/deepExtends.ts:36:15"
+}

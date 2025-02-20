@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-23329",
+  "dependencies": {
+    "nested-object-assign": "1.0.3"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-NESTEDOBJECTASSIGN-1065977",
+    "source2": "https://github.com/advisories/GHSA-c497-v8pv-ch6x"
+  },
+  "fixedVersion": "1.0.4",
+  "fixCommit": "n/a",
+  "sink": "lib/nestedObjectAssign.js:1:787"
+}

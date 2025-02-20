@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7722",
+  "dependencies": {
+    "nodee-utils": "1.2.2"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-NODEEUTILS-598679",
+    "source2": "https://github.com/advisories/GHSA-p6jh-p7q8-pcrg"
+  },
+  "fixedVersion": "1.2.3",
+  "fixCommit": "https://github.com/nodee-apps/utils/commit/52460d936c52f03c9907bc99ac5e890970cef83c",
+  "sink": "lib/object.js:210:40"
+}

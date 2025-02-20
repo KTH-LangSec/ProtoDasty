@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-28280",
+  "dependencies": {
+    "predefine": "0.1.2"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-PREDEFINE-1054935",
+    "source2": "https://github.com/advisories/GHSA-mx3x-ghqm-r43h"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "index.js:284:21"
+}

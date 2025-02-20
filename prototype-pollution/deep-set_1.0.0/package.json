@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-28276",
+  "dependencies": {
+    "deep-set": "1.0.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-DEEPSET-1054938",
+    "source2": ""
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "index.js:33:31"
+}

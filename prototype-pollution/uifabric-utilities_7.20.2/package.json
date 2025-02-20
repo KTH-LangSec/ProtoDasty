@@ -1,0 +1,13 @@
+{
+  "id": "",
+  "dependencies": {
+    "@uifabric/utilities": "7.20.2"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-UIFABRICUTILITIES-571487",
+    "source2": ""
+  },
+  "fixedVersion": "7.20.3",
+  "fixCommit": "n/a",
+  "sink": "utilities/src/merge.ts:33:21"
+}

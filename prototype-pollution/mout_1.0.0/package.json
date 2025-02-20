@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7792",
+  "dependencies": {
+    "mout": "1.0.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-MOUT-1014544",
+    "source2": ""
+  },
+  "fixedVersion": "1.2.3",
+  "fixCommit": "n/a",
+  "sink": "object/set.js:9:48"
+}

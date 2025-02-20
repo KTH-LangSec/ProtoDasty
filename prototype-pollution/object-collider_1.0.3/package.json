@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-25914",
+  "dependencies": {
+    "object-collider": "1.0.3"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-OBJECTCOLLIDER-1080739",
+    "source2": "https://github.com/advisories/GHSA-85g2-29m8-qf2p"
+  },
+  "fixedVersion": "1.0.4",
+  "fixCommit": "https://github.com/FireBlinkLTD/object-collider/commit/321f75a7f8e7b3393e5b7dd6dd9ab26ede5906e5",
+  "sink": "src/utils/CollideUtil.ts:83:22"
+}

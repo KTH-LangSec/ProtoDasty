@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2018-16491",
+  "dependencies": {
+    "node.extend": "1.0.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-NODEEXTEND-73641",
+    "source2": "https://github.com/advisories/GHSA-r96c-57pf-9jjm"
+  },
+  "fixedVersion": "2.0.1",
+  "fixCommit": "n/a",
+  "sink": "lib/extend.js:86:26"
+}

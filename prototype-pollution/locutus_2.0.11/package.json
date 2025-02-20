@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7719",
+  "dependencies": {
+    "locutus": "2.0.11"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-LOCUTUS-598675",
+    "source2": "https://github.com/advisories/GHSA-f98m-q3hr-p5wq"
+  },
+  "fixedVersion": "2.0.12",
+  "fixCommit": "n/a",
+  "sink": ""
+}

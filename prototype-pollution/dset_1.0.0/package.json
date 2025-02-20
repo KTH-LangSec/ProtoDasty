@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-28277",
+  "dependencies": {
+    "dset": "1.0.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-DSET-1054939",
+    "source2": ""
+  },
+  "fixedVersion": "2.1.0",
+  "fixCommit": "n/a",
+  "sink": "dist/dset.js:6:18"
+}

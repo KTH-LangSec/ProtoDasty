@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7742",
+  "dependencies": {
+    "simpl-schema": "1.10.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-SIMPLSCHEMA-1016157",
+    "source2": "https://github.com/advisories/GHSA-9mx2-prfp-8hqp"
+  },
+  "fixedVersion": "1.10.2",
+  "fixCommit": "n/a",
+  "sink": "dist/utility/merge.js:31:27"
+}

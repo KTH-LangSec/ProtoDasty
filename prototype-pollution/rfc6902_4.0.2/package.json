@@ -1,0 +1,13 @@
+{
+  "id": "",
+  "dependencies": {
+    "rfc6902": "4.0.2"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-RFC6902-1053318",
+    "source2": ""
+  },
+  "fixedVersion": "5.0.0",
+  "fixCommit": "n/a",
+  "sink": "patch.js:57:21"
+}

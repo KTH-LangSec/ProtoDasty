@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7716",
+  "dependencies": {
+    "deeps": "1.4.5"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-DEEPS-598667",
+    "source2": "https://github.com/advisories/GHSA-rgfv-v3jh-7ffp"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "index.js:226:94"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "",
+  "dependencies": {
+    "getsetdeep": "4.15.0"
+  },
+  "links": {
+    "source1": "https://github.com/advisories/GHSA-8j49-49jq-vwcq",
+    "source2": ""
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "edition-esnext/index.js:74:17"
+}

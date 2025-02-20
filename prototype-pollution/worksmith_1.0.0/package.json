@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7725",
+  "dependencies": {
+    "worksmith": "1.0.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-WORKSMITH-598798",
+    "source2": "https://github.com/advisories/GHSA-9829-jj5p-j6hf"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "index.js:300:30"
+}

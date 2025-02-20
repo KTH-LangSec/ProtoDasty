@@ -1,0 +1,13 @@
+{
+  "id": "",
+  "dependencies": {
+    "@fluentui/styles": "0.47.15"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-FLUENTUISTYLES-570808",
+    "source2": ""
+  },
+  "fixedVersion": "0.50.0",
+  "fixCommit": "n/a",
+  "sink": "styles/dist/commonjs/deepmerge.ts:16:9"
+}

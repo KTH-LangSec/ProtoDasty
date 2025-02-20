@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-28462",
+  "dependencies": {
+    "ion-parser": "0.5.2"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-IONPARSER-1048971",
+    "source2": ""
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "parser.js:359:13"
+}

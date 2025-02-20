@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7717",
+  "dependencies": {
+    "dot-notes": "3.2.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-DOTNOTES-598668",
+    "source2": "https://github.com/advisories/GHSA-qr4m-jcvc-3382"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "lib/create.js:43:19"
+}

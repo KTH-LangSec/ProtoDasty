@@ -1,0 +1,13 @@
+{
+  "id": "",
+  "dependencies": {
+    "flat-wrap": "1.0.2"
+  },
+  "links": {
+    "source1": "https://github.com/advisories/GHSA-g7h8-p22m-2rvx",
+    "source2": ""
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "index.js:193:43"
+}

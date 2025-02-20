@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-28495",
+  "dependencies": {
+    "total.js": "3.4.6"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-TOTALJS-1046671",
+    "source2": "https://github.com/advisories/GHSA-6cf8-qhqj-vjqm"
+  },
+  "fixedVersion": "3.4.7",
+  "fixCommit": "https://github.com/totaljs/framework/commit/b3f901561d66ab799a4a99279893b94cad7ae4ff",
+  "sink": "utils.js:6624:11, <anonymous"
+}

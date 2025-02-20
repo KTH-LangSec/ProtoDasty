@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7600",
+  "dependencies": {
+    "querymen": "2.1.3"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-QUERYMEN-559867",
+    "source2": "https://github.com/advisories/GHSA-2cf2-2383-h4jv"
+  },
+  "fixedVersion": "2.1.4",
+  "fixCommit": "https://github.com/diegohaz/querymen/commit/1987fefcb3b7508253a29502a008d5063a873cef",
+  "sink": "dist/index.js:46:26"
+}

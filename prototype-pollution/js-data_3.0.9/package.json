@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-23574",
+  "dependencies": {
+    "js-data": "3.0.9"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-JSDATA-1584361",
+    "source2": "https://github.com/advisories/GHSA-c6h4-gc3f-hgjq"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "https://github.com/js-data/js-data/pull/579/commits/44d69656ce22a0a0300f1e94eb6dcfefd9dcffa4",
+  "sink": "src/utils.js:487:18"
+}

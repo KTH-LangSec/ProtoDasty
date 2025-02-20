@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-28450",
+  "dependencies": {
+    "decal": "2.1.3"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-DECAL-1051028",
+    "source2": "https://github.com/advisories/GHSA-j32x-j8pj-pg2h"
+  },
+  "fixedVersion": "n/a",
+  "fixCommit": "n/a",
+  "sink": "src/utils/extend.js:50:62"
+}

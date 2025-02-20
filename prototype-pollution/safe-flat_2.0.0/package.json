@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2021-25927",
+  "dependencies": {
+    "safe-flat": "2.0.0"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-SAFEFLAT-1277112",
+    "source2": "https://github.com/advisories/GHSA-33rv-m2gp-mm2r"
+  },
+  "fixedVersion": "2.0.2",
+  "fixCommit": "https://github.com/jessie-codes/safe-flat/commit/4b9b7db976bba8c968354f4315f5f9c219b7cbf3",
+  "sink": "src/index.js:48:30"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "CVE-2020-7774",
+  "dependencies": {
+    "y18n": "3.2.1"
+  },
+  "links": {
+    "source1": "https://security.snyk.io/vuln/SNYK-JS-Y18N-1021887",
+    "source2": "https://github.com/advisories/GHSA-c4w7-xm78-47vh"
+  },
+  "fixedVersion": "5.0.5",
+  "fixCommit": "n/a",
+  "sink": "index.js:156:34"
+}
