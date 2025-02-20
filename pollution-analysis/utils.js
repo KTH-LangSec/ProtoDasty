@@ -371,6 +371,10 @@ function taintCompResult(left, right, op) {
         otherVal = otherVal.__x_val;
     }
 
+    if (!taintVal || !otherVal) {
+        return taintVal === otherVal;
+    }
+
     switch (op) {
         case '===':
             if (typeof taintVal === typeof otherVal) {

@@ -13,7 +13,8 @@ class PollutionAnalysis {
         this.uncaughtErr = null;
     }
 
-    write = (iid, name, val, lhs, isGlobal, isScriptLocal) => {
+    write = (iid, name, val, lhs, isGlobal, isScriptLocal, functionScope) => {
+        // console.log("DEBUG - write", name, val, lhs);
     };
 
     // TODO review this code
@@ -71,7 +72,6 @@ class PollutionAnalysis {
     }
 
     putField = (iid, base, offset, val, isComputed, isOpAssign) => {
-        if (isTaintProxy(base) || isProtoTaintProxy(base) || isPropertyTaintProxy(base)) console.log("putField: ", base, offset, val);
         if (isProtoTaintProxy(base) && isTaintProxy(val) && isTaintProxy(offset)) {
             // TODO - Write prototype pollution
             console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
@@ -86,7 +86,6 @@ class PollutionAnalysis {
             try {
                 const cf = createCodeFlow(iid, 'propertyReadName', offset.__x_val);
                 const ret = offset.__x_copyTaint(base[offset.__x_val], cf, getTypeOf(val), TAINT_TYPE.PROTO);
-                console.log("Adding taint to: ", base, offset.__x_val);
                 return {result: ret};
             } catch (e) {
                 throw e;
@@ -95,7 +94,6 @@ class PollutionAnalysis {
             try {
                 const cf = createCodeFlow(iid, 'propertyReadName', offset.__x_val);
                 const ret = offset.__x_copyTaint(base[offset.__x_val], cf, getTypeOf(val), TAINT_TYPE.PROPERTY);
-                console.log("Adding taint to: ", base, offset.__x_val);
                 return {result: ret};
             } catch (e) {
                 throw e;                
@@ -103,10 +101,10 @@ class PollutionAnalysis {
         }
     };
 
-    invokeFunStart = (iid, f, receiver, index, isConstructor, isAsync, functionScope, argLength) => {
+    invokeFunStart = (iid, f, receiver, index, isConstructor, isAsync, functionScope) => {
         if (!functionScope?.startsWith("node:")) {
             // TODO dynamically check if the function is part of the exported functions
-            if (f?.name === 'Play') {
+            if (f?.name === 'setDeepProperty') {
                 const internalWrapperTaints = function (...args) {
                     args?.forEach((arg, index) => {
                         if (!arg) return;
@@ -135,12 +133,10 @@ class PollutionAnalysis {
                 return { result: internalWrapperTaints};
             }
         } else {
-
             const internalWrapper = function (...args) {
                 const unwrappedArgs = args.map((a, index) => {
                     let taintedInputs = false;
                     if (isTaintProxy(a) || isProtoTaintProxy(a) || isPropertyTaintProxy(a)) {
-                        console.log('Tainted input: ', a);
                         taintedInputs = true;
                     }
                     return taintedInputs ? unwrapDeep(a) : a;
