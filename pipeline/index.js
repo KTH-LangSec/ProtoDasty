@@ -765,6 +765,7 @@ async function runPipeline(pkgName) {
 
         // run pollution analysis
         // TODO prepare this better
+        console.log('Running pollution analysis');
         await runAnalysisNodeWrapper(
             POLLUTION_ANALYSIS,
             repoPath,
