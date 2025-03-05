@@ -107,7 +107,8 @@ const CLI_ARGS = {
     '--repoPath': 1,
     '--processNr': 1,
     '--forceProcess': 0,
-    '--forceSetup': 0
+    '--forceSetup': 0,
+    '--onlyPollution': 0
 }
 
 // Set default values (also so that the ide linter shuts up)
@@ -139,7 +140,8 @@ let cliArgs = {
     repoPath: undefined,
     processNr: 1,
     forceProcess: false,
-    forceSetup: false
+    forceSetup: false,
+    onlyPollution: false
 };
 
 let driverDir = null; // the directory containing the driver - depends on 'processNr'
@@ -773,6 +775,8 @@ async function runPipeline(pkgName) {
             EXCLUDE_ANALYSIS_KEYWORDS,
             execFile
         );
+
+        if (cliArgs.onlyPollution) return;
 
         let forInRun = !cliArgs.noForIn; // make one for in run
 
