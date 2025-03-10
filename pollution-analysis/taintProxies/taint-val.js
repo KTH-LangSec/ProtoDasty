@@ -1,7 +1,6 @@
 // DO NOT INSTRUMENT
 
-const {iidToLocation, isTaintProxy} = require("../../taint-analysis/utils/utils");
-
+delete require.cache[require.resolve("./../utils")];
 const allTaintValues = []; // stores all taint values
 
 const TAINT_TYPE = {
@@ -9,6 +8,8 @@ const TAINT_TYPE = {
     PROTO: 1,
     PROPERTY: 2
 }
+
+const { isTaintProxy, isProtoTaintProxy, checkTaintDeep, checkTaintedArgs, isPropertyTaintProxy } = require("../utils");
 
 class TaintProxyHandler {
     __x_isAnalysisProxy = true;
@@ -24,7 +25,8 @@ class TaintProxyHandler {
         if (this.__x_val && !this.type) {
             this.__x_type = getTypeOf(val);
         }
-        this.__x_val = val ?? this.__x_getDefaultVal(type);
+
+        this.__x_val = val;
 
         allTaintValues.push(this);
     }
@@ -124,7 +126,21 @@ class TaintProxyHandler {
                 // ToDo - add check for other objects and functions (e.g. sort)
                 const preLength = this.__x_type === 'array' ? this.__x_val.length : null;
 
-                const newVal = this.__x_val[prop](...arguments);
+                let newVal = this.__x_val[prop](...arguments);
+
+                const args = [...arguments];
+                if (checkTaintedArgs(args)) {            
+                    const newArgs = [];
+                    args.forEach((arg, index) => {
+                        if (!arg) return;
+                        if (!arg.__x_val) newArgs[index] = arg;
+                        
+                        newArgs[index] = arg.__x_val;
+                    })
+
+                    // TODO how to call the function if more than 1 arguments????
+                    newVal = this.__x_val[prop](newArgs[0]);
+                }
 
                 if (this.__x_type === 'array' && this.__x_val.length !== preLength) {
                     // record side effects (e.g. Array.push)
@@ -197,7 +213,6 @@ class TaintProxyHandler {
     }
 
     [Symbol.iterator]() {
-        this.__x_type = 'array';
         return this.__x_val.values();
     }
 
@@ -317,7 +332,12 @@ class TaintProxyHandler {
             this[prop] = value;
             return true;
         }
-
+        if (isTaintProxy(value) || isProtoTaintProxy(value) || isPropertyTaintProxy(value)) {
+            if (isTaintProxy(target) || isProtoTaintProxy(target) || isPropertyTaintProxy(target)) {
+                return Reflect.set(target.__x_val, prop, value.__x_val, receiver.__x_val);
+            }
+            return Reflect.set(target, prop, value.__x_val, receiver.__x_val);
+        }
         return Reflect.set(target, prop, value, receiver);
     }
 
@@ -330,8 +350,36 @@ class TaintProxyHandler {
         const type = !this.__x_val.__x_isDefaultFun ? getTypeOf(result) : null;
 
         const cf = createCodeFlow(null, 'functionCall', '');
-        if (this.__x_taintType !== TAINT_TYPE.BASIC) return this.__x_copyTaint(result, cf, type, this.__x_taintType);
-        return this.__x_copyTaint(result, cf, type);
+        // if (this.__x_taintType !== TAINT_TYPE.BASIC) return this.__x_copyTaint(result, cf, type, this.__x_taintType);
+        // return this.__x_copyTaint(result, cf, type);
+        return result;
+    }
+
+    validateString() {
+        console.log("HERERERERERE");
+    }
+
+    ownKeys() {
+        const keys = Reflect.ownKeys(this.__x_val);
+
+        // Insert first element to understand that the array should be tainted:
+        // How should we handle more than one element?
+        console.log("\n-----------------------------------------\n   !! Accessing Polluted Properties !!\n-----------------------------------------\n");
+        return keys;
+    }
+
+    getOwnPropertyDescriptor(target, key) {
+        const desc = Reflect.getOwnPropertyDescriptor(target, key);
+        // console.log("GETTTING PROPERTY DESCRIPTOR; MIGHT CAUSE ERROR: ", desc);
+        return desc;
+    }
+
+    forEach(callback) {
+        const taintedCallback = function (value, key, array) {
+            callback(this.__x_copyTaint(value, createCodeFlow(null, 'iter', "forEach"), typeof value), key, array);
+        }.bind(this);
+
+        this.__x_val.forEach(taintedCallback);
     }
 }
 

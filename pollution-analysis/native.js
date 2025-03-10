@@ -6,6 +6,7 @@ const path = require('path');
 const querystring = require('querystring');
 const {isTaintProxy, checkTaints} = require("./utils");
 const {DEFAULT_CHECK_DEPTH} = require("./conf/analysis-conf");
+const { create } = require('domain');
 
 // Todo - deep taint check
 
@@ -28,6 +29,49 @@ const builtins = new Map([
             const res = JSON.stringify(args[0].__x_val);
             const cf = createCodeFlow(iid, 'functionArgResult', 'JSON.stringify');
             return args[0].__x_copyTaint(res, cf, 'string');
+        }
+    ], [
+        RegExp.prototype.exec,
+        (iid, result, target, f, args) => {
+            const taintArg = args[0];
+            if (!taintArg) return null;
+
+            const cf = createCodeFlow(iid, 'functionArgResult', 'RegExp.exec');
+            // return taintArg.__x_copyTaint(result, cf, 'object');
+            return result;
+        }
+    ], [
+        decodeURIComponent,
+        (iid, result, target, f, args) => {
+            if(!args[0]?.__x_taint) return null;
+
+            const res = decodeURIComponent(args[0].__x_val);
+            const cf = createCodeFlow(iid, 'functionArgResult', 'decodeURIComponent');
+            return args[0].__x_copyTaint(res, cf, 'string');
+        }
+    ], [
+        Array.prototype.includes,
+        (iid, result, target, f, args) => {
+            if (!args[0]?.__x_taint) return null;
+            let res;
+            if (!target?.__x_taint) {
+                res =  target.includes(args[0].__x_val);
+            } else {
+                res = target.__x_val.includes(args[0].__x_val);
+            }
+
+            const cf = createCodeFlow(iid, 'functionArgResult', 'includes');
+            return args[0].__x_copyTaint(res, cf, 'boolean');
+        }
+    ], [
+        Promise.resolve,
+        (iid, result, target, f, args) => {
+            if (!args[0].__x_taint) return null;
+
+            const res = target.resolve(result);
+            console.log("AAAAAAAAAAA", res);
+            const cf = createCodeFlow(iid, 'functionArgResult', 'resolve');
+            return args[0].__x_copyTaint(res, cf, 'boolean');
         }
     ]
 ]);
@@ -144,7 +188,8 @@ function emulate(iid, result, args, fName, checkDeep = false, argsToCheck = null
 
 function emulateBuiltin(iid, result, target, f, args) {
     const builtin = builtins.get(f);
-    return builtin ? builtin(iid, result, target, f, args) : null;
+    const emulatedResult = builtin ? builtin(iid, result, target, f, args) : null;
+    return emulatedResult;
 }
 
 function emulateNodeJs(module, iid, result, target, f, args) {

@@ -2,7 +2,6 @@
 
 const fs = require("fs");
 const {DEFAULT_UNWRAP_DEPTH, DEFAULT_CHECK_DEPTH, FORCE_MAX_BRANCHES} = require("./conf/analysis-conf");
-const {TAINT_TYPE} = require("./taintProxies/taint-val");
 
 function iidToLocation(iid) {
     return J$.iidToLocation(iid);
@@ -300,6 +299,21 @@ function unwrapDeepRec(arg, depth = DEFAULT_UNWRAP_DEPTH, done = []) {
     }
 }
 
+function checkTaintedArgs(args) {
+    let flag = false;
+    
+    try {
+        args.forEach((arg) => {
+            if (isTaintProxy(arg)) {
+                flag = true;
+            }
+        })
+        return flag;
+    } catch (e) {
+        return false;
+    }
+}
+
 function isAnalysisWrapper(obj) {
     try {
         return obj !== null && obj !== undefined
@@ -321,6 +335,8 @@ function isWrapperFun(obj) {
 }
 
 function isTaintProxy(obj) {
+    const {TAINT_TYPE} = require("./taintProxies/taint-val");
+
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
@@ -333,6 +349,8 @@ function isTaintProxy(obj) {
 }
 
 function isProtoTaintProxy(obj) {
+    const {TAINT_TYPE} = require("./taintProxies/taint-val");
+
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
@@ -345,6 +363,8 @@ function isProtoTaintProxy(obj) {
 }
 
 function isPropertyTaintProxy(obj) {
+    const {TAINT_TYPE} = require("./taintProxies/taint-val");
+
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
@@ -359,7 +379,7 @@ function isPropertyTaintProxy(obj) {
 function taintCompResult(left, right, op) {
     let taintVal;
     let otherVal;
-    if (isTaintProxy(left)) {
+    if (isTaintProxy(left) || isProtoTaintProxy(left) || isPropertyTaintProxy(left)) {
         taintVal = left.__x_val;
         otherVal = right;
     } else {
@@ -371,14 +391,15 @@ function taintCompResult(left, right, op) {
         otherVal = otherVal.__x_val;
     }
 
-    if (!taintVal || !otherVal) {
+    if ((taintVal == undefined || taintVal == null) ||  
+        (otherVal == undefined || otherVal == null)) {
         return taintVal === otherVal;
     }
 
     switch (op) {
         case '===':
             if (typeof taintVal === typeof otherVal) {
-                return taintVal.toString() === otherVal.toString();
+                return taintVal === otherVal;
             }
             return false;
         case '==':
@@ -400,6 +421,12 @@ function updateAndCheckBranchCounter(branchCounter, loc) {
         console.log('Done');
         process.exit(0);
     }
+}
+
+function checkSubFolderImport(package, imported) {
+    if (!package || !imported) return false;
+
+    return package == imported || imported.startsWith(`${package}/`);
 }
 
 function isBuiltinProto(proto) {
@@ -438,6 +465,18 @@ function isBuiltinProto(proto) {
         proto === WeakMap.prototype ||
         proto === WeakSet.prototype ||
         proto === Promise.prototype
+}
+
+function containsString(str1, str2) {
+    return str1.includes(str2) || str2.includes(str1);
+}
+
+function overlapFunctionPackage(str1, str2) {
+    if (!str1 || !str2) return false;
+    const __str1 = str1.endsWith(".js") ? str1.slice(0, -3) : str1;
+    const __str2 = str2.endsWith(".js") ? str2.slice(0, -3) : str2;
+
+    return containsString(__str1, __str2);
 }
 
 function createInternalFunctionWrapper(iid, f, receiver, isAsync, flows, functionScope) {
@@ -514,5 +553,8 @@ module.exports = {
     isWrapperFun,
     createInternalFunctionWrapper,
     taintCompResult,
-    updateAndCheckBranchCounter
+    updateAndCheckBranchCounter,
+    overlapFunctionPackage,
+    checkTaintedArgs,
+    checkSubFolderImport
 }
