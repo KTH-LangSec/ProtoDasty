@@ -1,5 +1,6 @@
 const {exec, spawn} = require('child_process');
 const fs = require('fs');
+const fs_promise = require('fs').promises;
 const {getDb, closeConnection} = require('./db/conn');
 const {ObjectId, Db} = require("mongodb");
 const path = require("path");
@@ -337,12 +338,15 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
 
     // add driver dir initParam
     params += ` --initParam driverDir:${driverDir}`;
+    // console.log("INIT PARAMS::::::::::", initParams);
+    // console.log("INIT DIR:::::::::::::", dir);
     for (const initParamName in initParams) {
         const initParam = initParams[initParamName];
         if (initParam !== null && initParam !== undefined) {
             params += ` --initParam ${initParamName}:${initParam}`;
         }
     }
+    params += ` --initParam pkgDir:${dir}`;
 
     fs.writeFileSync(driverDir + '/params.txt', params, {encoding: 'utf8'});
 
@@ -768,10 +772,21 @@ async function runPipeline(pkgName) {
         // run pollution analysis
         // TODO prepare this better
         console.log('Running pollution analysis');
+        let _jsonPkgName = null;
+        try {
+            const data = await fs_promise.readFile(`${repoPath}/package.json`, 'utf8');
+            const packageJson = JSON.parse(data);
+            _jsonPkgName = execFile ? Object.keys(packageJson.dependencies)[0] : packageJson.name;
+                } catch (err) {
+            console.error('Error reading file:', err);
+        }
+
         await runAnalysisNodeWrapper(
             POLLUTION_ANALYSIS,
             repoPath,
-            {pkgName},
+            {
+                pkgName,
+                jsonPkgName: _jsonPkgName},
             EXCLUDE_ANALYSIS_KEYWORDS,
             execFile
         );
