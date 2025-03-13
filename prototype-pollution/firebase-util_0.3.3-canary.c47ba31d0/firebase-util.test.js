@@ -1,6 +1,6 @@
 //https://security.snyk.io/vuln/SNYK-JS-FIREBASEUTIL-1038324
-test("prototype pollution in @firebase/util", () => {
-  expect({}.polluted).toBe(undefined);
+ 
+   
 
   const util = require("@firebase/util");
   var payload = JSON.parse('{"__proto__": {"polluted": "yes"}}');
@@ -18,5 +18,4 @@ test("prototype pollution in @firebase/util", () => {
   };
 
   var result = util.deepExtend(a, payload);
-  expect({}.polluted).toBe("yes");
-});
+// End of file

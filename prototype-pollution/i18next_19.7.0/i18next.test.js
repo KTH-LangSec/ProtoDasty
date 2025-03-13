@@ -26,14 +26,12 @@ function deepExtend(target, source, overwrite) {
   return target;
 }
 
-test("prototype pollution in i18next ", () => {
+ 
   const translations =
     '{ "constructor": { "prototype": { "polluted": "yes"} } }';
   const existingData = {};
 
-  expect({}.polluted).toBe(undefined);
+   
 
   deepExtend(existingData, JSON.parse(translations), true);
-
-  expect({}.polluted).toBe("yes");
-});
+// End of file

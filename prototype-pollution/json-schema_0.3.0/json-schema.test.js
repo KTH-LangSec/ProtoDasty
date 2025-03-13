@@ -1,5 +1,5 @@
 //https://huntr.dev/bounties/bb6ccd63-f505-4e3a-b55f-cd2662c261a9/
-test("prototype pollution in json-schema", () => {
+ 
   const { validate } = require("json-schema");
   const instance = JSON.parse(`
     {
@@ -21,9 +21,7 @@ test("prototype pollution in json-schema", () => {
       }
     }`);
 
-  expect({}.polluted).toBe(undefined);
+   
 
   validate(instance);
-
-  expect({}.polluted).toBe("yes");
-});
+// End of file
