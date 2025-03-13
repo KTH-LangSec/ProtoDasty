@@ -314,7 +314,7 @@ class TaintProxyHandler {
             const cf = createCodeFlow(null, 'propRead', prop);
             
             // if already tainted simply return it
-            if (isTaintProxy(newVal)) {
+            if (isTaintProxy(newVal) || isProtoTaintProxy(newVal) || isPropertyTaintProxy(newVal)) {
                 newVal.__x_taint.codeFlow.push(cf);
                 return newVal;
             }
@@ -355,23 +355,25 @@ class TaintProxyHandler {
         return result;
     }
 
-    validateString() {
-        console.log("HERERERERERE");
-    }
-
     ownKeys() {
         const keys = Reflect.ownKeys(this.__x_val);
-
-        // Insert first element to understand that the array should be tainted:
-        // How should we handle more than one element?
-        console.log("\n-----------------------------------------\n   !! Accessing Polluted Properties !!\n-----------------------------------------\n");
+        // keys.forEach((arg, index) => {
+        //     keys[index] = `__x_toTaint_${arg}`;
+        // })
+        // __x_ownKeys = structuredClone(keys);
         return keys;
     }
 
     getOwnPropertyDescriptor(target, key) {
-        const desc = Reflect.getOwnPropertyDescriptor(target, key);
-        // console.log("GETTTING PROPERTY DESCRIPTOR; MIGHT CAUSE ERROR: ", desc);
-        return desc;
+        // if (__x_ownKeys.indexOf(key) !== -1) {
+        //     key = key.slice(12);
+        // }
+        const res = Reflect.getOwnPropertyDescriptor(this.__x_val, key);
+        // if (res?.value) {
+        //     const cf = createCodeFlow(null, 'keys', 'getOwnPropertyDescriptor');
+        //     res.value = this.__x_copyTaint(res.value, cf, typeof res.value);
+        // }
+        return res;
     }
 
     forEach(callback) {

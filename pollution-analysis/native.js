@@ -64,14 +64,13 @@ const builtins = new Map([
             return args[0].__x_copyTaint(res, cf, 'boolean');
         }
     ], [
-        Promise.resolve,
+        Object.getPrototypeOf,
         (iid, result, target, f, args) => {
             if (!args[0].__x_taint) return null;
 
-            const res = target.resolve(result);
-            console.log("AAAAAAAAAAA", res);
-            const cf = createCodeFlow(iid, 'functionArgResult', 'resolve');
-            return args[0].__x_copyTaint(res, cf, 'boolean');
+            const res = Object.getPrototypeOf(args[0].__x_val);
+            const cf = createCodeFlow(iid, 'functionArgResult', 'getPrototypeOf');
+            return args[0].__x_copyTaint(res, cf, 'object');
         }
     ]
 ]);
