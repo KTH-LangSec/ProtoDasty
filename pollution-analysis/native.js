@@ -72,6 +72,15 @@ const builtins = new Map([
             const cf = createCodeFlow(iid, 'functionArgResult', 'getPrototypeOf');
             return args[0].__x_copyTaint(res, cf, 'object');
         }
+    ], [
+        Object.keys,
+        (iid, result, target, f, args) => {
+            if (!args[0].__x_taint) return null;
+
+            const res = Object.keys(args[0].__x_val);
+            const cf = createCodeFlow(iid, 'functionArgResult', 'keys');
+            return args[0].__x_copyTaint(res, cf, 'array');
+        }
     ]
 ]);
 

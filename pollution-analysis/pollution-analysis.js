@@ -1,12 +1,15 @@
 // DO NOT INSTRUMENT
 const { isTaintProxy, isProtoTaintProxy, isPropertyTaintProxy, checkSubFolderImport, unwrapDeep, taintCompResult, iidToLocation, overlapFunctionPackage, checkTaintedArgs } = require("./utils");
-const { createTaintVal, createCodeFlow, allTaintValues, getTypeOf, checkForInKey } = require("./taintProxies/taint-val");
+const { createTaintVal, createCodeFlow, allTaintValues, getTypeOf, checkForInKey, cleanOwnKeysArray, isPropertyForIn, getPropertyTaint, createTaintValFromHandler } = require("./taintProxies/taint-val");
 const { TAINT_TYPE } = require("./taintProxies/taint-val");
 const { DONT_UNWRAP, DEFAULT_UNWRAP_DEPTH, EXCLUDE_INJECTION } = require("./conf/analysis-conf");
 const { emulateNodeJs, emulateBuiltin } = require("./native");
 const fs = require("fs");
+const { off } = require("process");
 
 class PollutionAnalysis {
+
+    __insideForIn = false;
 
     constructor(pkgName, jsonPkgName, pkgDir, executionDoneCallback) {
         this.pkgName = pkgName;
@@ -20,6 +23,11 @@ class PollutionAnalysis {
     };
     
     read = (iid, name, val, isGlobal, isScriptLocal, functionScope) => {
+        if (isPropertyForIn(name) && this.__insideForIn) {
+            const ret = createTaintValFromHandler(getPropertyTaint());
+            console.log("reading tainted", ret);
+            return {result: ret};
+        }
     };
 
     _return = (iid, val) => {
@@ -35,7 +43,7 @@ class PollutionAnalysis {
                 this is used further up in the comparison to assign the correct type */
                 const cf = createCodeFlow(iid, 'unary', 'typeof');
                 left.__x_addCodeFlow(iid, 'unary', 'typeof', left.__x_type)
-                return {result: left.__x_type};
+                return {result: typeof left.__x_val};
             case '!':
                 // return new taint with 'reversed' value
                 return {result: !left.__x_val};
@@ -56,65 +64,74 @@ class PollutionAnalysis {
     
     // TODO review this code
     binaryPre = (iid, op, left, right) => {
+        // console.log("Binary", left.__x_val, `(${!!left?.__x_taint})`, op, right, `(${!!right?.__x_taint})`, "=\n", iidToLocation(iid));
     }
-
+    
     // TODO review this code
     binary = (iid, op, left, right, result, isLogic) => {
+        // console.log("Binary", left.__x_val, `(${!!left?.__x_taint})`, op, right, `(${!!right?.__x_taint})`, `= ${result}\n`, iidToLocation(iid));
         // ToDo - handle notUndefinedOr (default value for object deconstruction e.g. {prop = []})
-        // console.log("Binary", left, `(${isProtoTaintProxy(left)})`, op, right, `(${isProtoTaintProxy(right)})`, "=", result);
         if (!isTaintProxy(left) && !isTaintProxy(right)
          && !isProtoTaintProxy(left) && !isProtoTaintProxy(right)
          && !isPropertyTaintProxy(left) && !isPropertyTaintProxy(right)) return;
 
+         // !!!!! TODO add instaceof!!!!!
         switch (op) {
             case '===':
             case '==':
                 // note that there are no '!== and !=' they are represented as e.g. !(x === y) in GraalJS and trigger the unary hook
+                // TODO handle taints here
                 let compRes = taintCompResult(left, right, op);
-                const taintVal = isTaintProxy(left) || isProtoTaintProxy(left) ? left : right;
+                // const taintVal = isTaintProxy(left) || isProtoTaintProxy(left) ? left : right;
                 
-                taintVal.__x_addCodeFlow(iid, 'conditional', op, {result: compRes});
+                // taintVal.__x_addCodeFlow(iid, 'conditional', op, {result: compRes});
 
                 return {result: compRes};
                 
             case '&&':
                 if (!isTaintProxy(left) && !isProtoTaintProxy(left) && !isPropertyTaintProxy(left)) break;
-
                 // if left is undefined return false
                 if (!left.__x_val) {
-                    // if (!this.forceBranches) {
-                    // addAndWriteBranchedOn(left.__x_taint.source.prop, iid, false, this.branchedOn, this.branchedOnFilename);
-                    left.__x_addCodeFlow(iid, 'binary', '&&', {result: false});
-
-                    const cf = createCodeFlow(iid, 'binary', op);
-                    return {result: left.__x_copyTaint(false, cf, 'boolean')};
+                    return {result: false};
+                    // return {result: left.__x_copyTaint(false, cf, 'boolean')};
                 } else {
                     // if left is not falsy wrap result
-                    let taintVal;
-                    const cf = createCodeFlow(iid, 'binary', op);
-                    if (isTaintProxy(result) || isProtoTaintProxy(result) || isPropertyTaintProxy(result)) {
-                        taintVal = result;
-                        taintVal.__x_taint.codeFlow.push(cf);
-                    } else {
-                        taintVal = left.__x_copyTaint(result, cf, getTypeOf(result));
-                    }
-                    return {result: taintVal};
+                    // TODO handle taints
+                    const compRes = taintCompResult(left, right, op)
+                    return {result: result};
                 }
             case '+':
                 // Todo - look into string Template Literals (it works but the other side is always '')
                 const res = left?.__x_taint ? left.__x_add(iid, right, result, true) : right.__x_add(iid, left, result, false);
                 return {result: res};
+            case 'instanceof':
+                let instanceRes = false;
+                if (right.__x_val) {
+                    instanceRes = left.__x_val ? left.__x_val instanceof right.__x_val : left instanceof right.__x_val;
+                } else if (left.__x_val) {
+                    instanceRes = left.__x_val instanceof right;
+                }
+                return {result: instanceRes};
         }
     }
 
     putField = (iid, base, offset, val, isComputed, isOpAssign) => {
-        if (isProtoTaintProxy(base) && isTaintProxy(val) && isTaintProxy(offset)) {
+        if (isProtoTaintProxy(base) && val?.__x_taint && isTaintProxy(offset)) {
             // TODO - Write prototype pollution
             console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
-        } else if (isPropertyTaintProxy(base) && isTaintProxy(val)) {
+        } else if (isPropertyTaintProxy(base) && val?.__x_taint) {
             // TODO - Write prototype pollution
             console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Constructor !!\n-------------------------------------------------\n");
         }
+        // TODO do we actually need offset to be only basic taint??
+        if (isPropertyForIn(offset) && this.__insideForIn) {
+            if (isProtoTaintProxy(base) && val?.__x_taint) {
+                console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
+            } else if (isPropertyTaintProxy(base) && val?.__x_taint) {
+                // TODO - Write prototype pollution
+                console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Constructor !!\n-------------------------------------------------\n");
+            }
+        } 
     }
 
     getField = (iid, base, offset, val, isComputed, scope) => {
@@ -143,8 +160,52 @@ class PollutionAnalysis {
                 throw e;                
             }
         }
+
+        if (isPropertyForIn(offset) && this.__insideForIn) {
+            // TODO logic to augment taint type
+            const taint = getPropertyTaint();
+            if (taint.__x_taintType == TAINT_TYPE.BASIC) {
+                if (!isProtoTaintProxy(base) && !isPropertyTaintProxy(base)) {
+                    try {
+                        const cf = createCodeFlow(iid, 'propertyReadName', offset);
+                        const ret =  isTaintProxy(base) 
+                                ? taint.__x_copyTaint(base.__x_val[offset], cf, getTypeOf(val), TAINT_TYPE.PROTO)
+                                : taint.__x_copyTaint(base[offset], cf, getTypeOf(val), TAINT_TYPE.PROTO);
+                        // need to check if the base is tainted
+                        return {result: ret};
+                    } catch (e) {
+                        throw e;
+                    }
+                } else if (isProtoTaintProxy(base)) {
+                    try {
+                        const cf = createCodeFlow(iid, 'propertyReadName', offset);
+                        const ret = offset.__x_copyTaint(base.__x_val[offset], cf, getTypeOf(val), TAINT_TYPE.PROPERTY);
+                        // need to check if the base is tainted
+                        return {result: ret};
+                    } catch (e) {
+                        throw e;                
+                    }
+                }
+            }
+        }
     };
 
+    controlFlowRootEnter = (iid, loopType, conditionResult) => {
+        if (loopType !== 'ForInIteration' && loopType !== 'ForOfIteration') return;
+        // TODO make sure the accessed properties are polluted?
+        // Can be done with a Map, or maybe there is an easier way to do it?
+        // This will only serve to update a flag that let's us know if we are inside a for in loop
+
+        this.__insideForIn = true;
+    }
+
+    controlFlowRootExit = (iid, loopType) => {
+        if (loopType !== 'ForInIteration') return;
+        cleanOwnKeysArray();
+        this.__insideForIn = false;
+    }
+
+    // TODO add checks for readFile functions
     invokeFunStart = (iid, f, receiver, index, isConstructor, isAsync, functionScope, imports) => {
         if (f?.__x_wrapped) return;
         if (isTaintProxy(f) || isProtoTaintProxy(f) || isPropertyTaintProxy(f)) return;
@@ -231,9 +292,9 @@ class PollutionAnalysis {
         if (f.name == 'call' && checkTaintedArgs(args)) {
             // TODO automate this so that the function is called automatically
             if (base.name == 'toString' && args[0]) {
-                return {result: args[0].toString()};
+                const ret = args[0].toString();
+                return {result: ret};
             } else if (base.name == 'hasOwnProperty') {
-                console.log("hasOwnProperty", args[0].__x_val, "!", args[1].__x_val)
                 const ret = args[1].__x_taint ? args[0].hasOwnProperty(args[1].__x_val) : args[0].hasOwnProperty(args[1]);
                 return {result: ret};
             } else if (base.name == 'relative') {

@@ -304,7 +304,7 @@ function checkTaintedArgs(args) {
     
     try {
         args.forEach((arg) => {
-            if (isTaintProxy(arg)) {
+            if (isTaintProxy(arg) || isProtoTaintProxy(arg) || isPropertyTaintProxy(arg)) {
                 flag = true;
             }
         })
@@ -404,6 +404,8 @@ function taintCompResult(left, right, op) {
             return false;
         case '==':
             return taintVal == otherVal;
+        case '&&':
+            return taintVal && otherVal;
     }
 }
 

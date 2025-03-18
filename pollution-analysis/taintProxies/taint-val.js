@@ -10,6 +10,7 @@ const TAINT_TYPE = {
 }
 
 const { isTaintProxy, isProtoTaintProxy, checkTaintDeep, checkTaintedArgs, isPropertyTaintProxy } = require("../utils");
+let __ownKeysArray = new Map();
 
 class TaintProxyHandler {
     __x_isAnalysisProxy = true;
@@ -126,6 +127,7 @@ class TaintProxyHandler {
                 // ToDo - add check for other objects and functions (e.g. sort)
                 const preLength = this.__x_type === 'array' ? this.__x_val.length : null;
 
+                if (!this.__x_val) return;
                 let newVal = this.__x_val[prop](...arguments);
 
                 const args = [...arguments];
@@ -356,11 +358,10 @@ class TaintProxyHandler {
     }
 
     ownKeys() {
+        // TODO correctly save multiple keys?
         const keys = Reflect.ownKeys(this.__x_val);
-        // keys.forEach((arg, index) => {
-        //     keys[index] = `__x_toTaint_${arg}`;
-        // })
-        // __x_ownKeys = structuredClone(keys);
+        __ownKeysArray.set("taint", this);
+        __ownKeysArray.set("props", keys);
         return keys;
     }
 
@@ -406,14 +407,18 @@ function createCodeFlow(iid, type, name, values = undefined) {
     return transformation;
 }
 
-function createTaintVal(sourceIID, prop, entryPoint, val = undefined, type = null, forceBranchExec = false) {
-    const handler = new TaintProxyHandler(sourceIID, prop, entryPoint, val, type, forceBranchExec);
+function createTaintVal(sourceIID, prop, entryPoint, val = undefined, type = null, forceBranchExec = false, taintType = TAINT_TYPE.BASIC) {
+    const handler = new TaintProxyHandler(sourceIID, prop, entryPoint, val, type, forceBranchExec, taintType);
 
     // the target is a function as it makes it callable while still being an object
     return new Proxy(() => {
     }, handler);
 }
 
+function createTaintValFromHandler(handler) {
+    return new Proxy(() => {
+    }, handler);
+}
 function createProtoTaintVal(sourceIID, prop, entryPoint, val = undefined, type = null, forceBranchExec = false) {
     const handler = new TaintProxyHandler(sourceIID, prop, entryPoint, val, type, forceBranchExec, TAINT_TYPE.PROTO);
 
@@ -429,5 +434,20 @@ function createPropertyTaintVal(sourceIID, prop, entryPoint, val = undefined, ty
     return new Proxy(() => {
     }, handler);
 }
+// TODO implement loop inception
+// TODO only clean the correct entry
+function cleanOwnKeysArray() {
+    __ownKeysArray = new Map();
+}
 
-module.exports = {createTaintVal, createCodeFlow, allTaintValues, getTypeOf, TAINT_TYPE};
+// TODO add taint level to this
+function isPropertyForIn(prop) {
+    const props = __ownKeysArray.get("props");
+    return props?.indexOf(prop) > -1;
+}
+
+function getPropertyTaint() {
+    return __ownKeysArray.get("taint");
+}
+
+module.exports = {createTaintVal, createTaintValFromHandler, createCodeFlow, isPropertyForIn, getPropertyTaint, cleanOwnKeysArray, allTaintValues, getTypeOf, TAINT_TYPE};
