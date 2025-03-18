@@ -359,6 +359,7 @@ class TaintProxyHandler {
 
     ownKeys() {
         // TODO correctly save multiple keys?
+        if (typeof this.__x_val !== 'object' && typeof this.__x_val !== 'function') return [];
         const keys = Reflect.ownKeys(this.__x_val);
         __ownKeysArray.set("taint", this);
         __ownKeysArray.set("props", keys);
