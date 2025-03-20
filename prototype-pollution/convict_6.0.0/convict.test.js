@@ -2,9 +2,9 @@
  
   const convict = require("convict");
   let obj = {};
+  // TODO check if this should be propagated??
   const config = convict(obj);
 
-   
 
   config.set("__proto__.polluted", "yes");
 // End of file
