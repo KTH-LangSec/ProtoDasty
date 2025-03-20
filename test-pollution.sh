@@ -6,6 +6,8 @@ COUNTER=0
 FRESH=false
 TOTAL_TESTS=0
 COMPLETED_TESTS=0
+DATE=$(date "+%Y-%m-%d_%H-%M-%S")
+
 
 display_usage() {
   echo "Usage: $0 <directory>"
@@ -108,7 +110,7 @@ traverse_and_execute() {
     fi
 
     if [ "$counted" = false ]; then
-      echo "$test_name" >>log.txt
+      echo "$test_name" >>  "log_$DATE.txt"
     fi
     # Increment completed tests and update progress bar
     ((COMPLETED_TESTS++))
@@ -123,7 +125,6 @@ traverse_and_execute() {
 }
 
 # Start traversal
-rm /home/mateus/log.txt
 clear
 tput civis # Hide cursor
 traverse_and_execute "$ROOT_DIR"
