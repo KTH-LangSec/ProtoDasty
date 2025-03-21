@@ -16,7 +16,7 @@ class TaintProxyHandler {
     __x_isAnalysisProxy = true;
     __x_forceBranchExec = false; // indicates if this property is force branch executed (used for type inference)
 
-    constructor(sourceIID, prop, entryPoint, val = null, type = null, forceBranchExec = false, taintType = TAINT_TYPE.BASIC) {
+    constructor(sourceIID, prop, entryPoint, val, type = null, forceBranchExec = false, taintType = TAINT_TYPE.BASIC) {
         this.__x_taint = sourceIID ? {source: {iid: sourceIID, prop}, entryPoint, codeFlow: []} : null;
 
         this.__x_taintType = taintType;
