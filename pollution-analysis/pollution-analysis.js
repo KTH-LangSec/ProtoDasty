@@ -92,8 +92,10 @@ class PollutionAnalysis {
                 if (!isTaintProxy(left) && !isProtoTaintProxy(left) && !isPropertyTaintProxy(left)) break;
                 // if left is undefined return false
                 if (!left.__x_val) {
-                    return {result: false};
-                    // return {result: left.__x_copyTaint(false, cf, 'boolean')};
+                    // TODO propagate taints here
+                    const cf = createCodeFlow(iid, 'binary', op)
+                    return {result: left.__x_copyTaint(left.__x_val, cf, 'boolean')};
+                    // return {result: false};
                 } else {
                     // if left is not falsy wrap result
                     // TODO handle taints
@@ -116,20 +118,32 @@ class PollutionAnalysis {
     }
 
     putField = (iid, base, offset, val, isComputed, isOpAssign) => {
-        if (isProtoTaintProxy(base) && val?.__x_taint && isTaintProxy(offset)) {
+        if (!isTaintProxy(val) && !isProtoTaintProxy(val) && !isPropertyTaintProxy(val)) return;
+        if (isProtoTaintProxy(base)) {
+            if (offset.__x_taint) {
+                console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
+            }
             // TODO - Write prototype pollution
-            console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
-        } else if (isPropertyTaintProxy(base) && val?.__x_taint) {
+        } else if (isPropertyTaintProxy(base)) {
+            if (offset.__x_taint) {
+                console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Constructor !!\n-------------------------------------------------\n");
+            }
             // TODO - Write prototype pollution
-            console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Constructor !!\n-------------------------------------------------\n");
+        } else if (typeof val.__x_val == 'object') {
+            if (offset.__x_taint) {
+                console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Object !!\n-------------------------------------------------\n");
+            }
         }
+        
+        // if (isProtoTaintProxy(base) || isPropertyTaintProxy(base))
         // TODO do we actually need offset to be only basic taint??
         if (isPropertyForIn(offset) && this.__insideForIn) {
-            if (isProtoTaintProxy(base) && val?.__x_taint) {
+            if (isProtoTaintProxy(base)) {
                 console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
-            } else if (isPropertyTaintProxy(base) && val?.__x_taint) {
-                // TODO - Write prototype pollution
+            } else if (isPropertyTaintProxy(base)) {
                 console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Constructor !!\n-------------------------------------------------\n");
+            } else if (typeof val.__x_val == 'object') {
+                console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Object !!\n-------------------------------------------------\n");
             }
         } 
     }
