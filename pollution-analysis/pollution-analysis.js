@@ -98,7 +98,7 @@ class PollutionAnalysis {
                     // if left is not falsy wrap result
                     // TODO handle taints
                     const compRes = taintCompResult(left, right, op)
-                    return {result: result};
+                    return {result: right};
                 }
             case '+':
                 // Todo - look into string Template Literals (it works but the other side is always '')
