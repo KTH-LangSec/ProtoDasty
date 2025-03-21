@@ -286,10 +286,17 @@ class TaintProxyHandler {
     get(target, prop, receiver) {
         if (prop === 'constructor') {
             // ToDo - handle constructor access
-            return Reflect.get(target, prop, receiver);
+            const cf = createCodeFlow(null, 'propRead', prop);
+            const newVal = this.__x_val && this.__x_val[prop] ? this.__x_val[prop] : undefined;
+
+            const res = this.__x_copyTaint(newVal, cf, typeof newVal);
+
+            return res;
         } else if (this.hasOwnProperty(prop) || TaintProxyHandler.prototype.hasOwnProperty(prop)) {
             // if the property is defined in the class delegate to it (this makes it straightforward to overwrite specific functions/members)
-            return typeof this[prop] === 'function' ? this[prop].bind(this) : this[prop];
+            // TODO how should we handle function access??
+            return typeof this[prop] === 'function' ? this[prop] : this[prop];
+            // return typeof this[prop] === 'function' ? this[prop].bind(this) : this[prop];
         } else if (typeof prop === 'symbol') {
             // ToDo - handle symbol access
             return undefined;
