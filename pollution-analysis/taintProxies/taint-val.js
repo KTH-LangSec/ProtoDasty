@@ -295,8 +295,8 @@ class TaintProxyHandler {
         } else if (this.hasOwnProperty(prop) || TaintProxyHandler.prototype.hasOwnProperty(prop)) {
             // if the property is defined in the class delegate to it (this makes it straightforward to overwrite specific functions/members)
             // TODO how should we handle function access??
-            return typeof this[prop] === 'function' ? this[prop] : this[prop];
-            // return typeof this[prop] === 'function' ? this[prop].bind(this) : this[prop];
+            // return typeof this[prop] === 'function' ? this[prop] : this[prop];
+            return typeof this[prop] === 'function' ? this[prop].bind(this) : this[prop];
         } else if (typeof prop === 'symbol') {
             // ToDo - handle symbol access
             return undefined;
