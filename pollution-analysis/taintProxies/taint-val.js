@@ -130,19 +130,18 @@ class TaintProxyHandler {
                 if (!this.__x_val) return;
                 let newVal = this.__x_val[prop](...arguments);
 
-                const args = [...arguments];
-                if (checkTaintedArgs(args)) {            
-                    const newArgs = [];
-                    args.forEach((arg, index) => {
-                        if (!arg) return;
-                        if (!arg.__x_val) newArgs[index] = arg;
-                        
-                        newArgs[index] = arg.__x_val;
-                    })
-
-                    // TODO how to call the function if more than 1 arguments????
-                    newVal = this.__x_val[prop](newArgs[0]);
-                }
+                // const args = [...arguments];
+                // if (checkTaintedArgs(args)) {            
+                //     const newArgs = [];
+                //     args.forEach((arg, index) => {
+                //         if (!arg) return;
+                //         if (!arg.__x_val) newArgs[index] = arg;
+                //         else newArgs[index] = arg.__x_val;
+                //     })
+                //     // TODO how to call the function if more than 1 arguments????
+                //     newVal1 = this.__x_val[prop].apply(null, newArgs);
+                //     console.log("newValue", newVal1.__x_val)
+                // }
 
                 if (this.__x_type === 'array' && this.__x_val.length !== preLength) {
                     // record side effects (e.g. Array.push)
@@ -151,7 +150,9 @@ class TaintProxyHandler {
 
                 // Maybe don't propagate taint if function returns only boolean or int (e.g. Array.push)?
                 // But in theory it might be possible to overwrite these methods to return something else, so I'm keeping it for now
-                return this.__x_copyTaint(newVal, createCodeFlow(null, 'functionResult', prop), getTypeOf(newVal));
+                return newVal?.__x_taint ? 
+                        this.__x_copyTaint(newVal.__x_val, createCodeFlow(null, 'functionResult', prop), getTypeOf(newVal))
+                        : this.__x_copyTaint(newVal, createCodeFlow(null, 'functionResult', prop), getTypeOf(newVal))
             }.bind(this);
         }
 
@@ -391,6 +392,22 @@ class TaintProxyHandler {
         }.bind(this);
 
         this.__x_val.forEach(taintedCallback);
+    }
+
+    reduce(callback, initValue = null) {
+        const taintedCallback = function (acc, curr) {
+            return callback(acc, this.__x_copyTaint(curr, createCodeFlow(null, 'iter', "reduce"), typeof curr));
+        }.bind(this)
+
+        let ret;
+        if (initValue) {
+            ret = this.__x_val.reduce(taintedCallback, initValue);
+        } 
+        else  {
+            this.__x_val.reduce(taintedCallback);
+        }
+
+        return ret;
     }
 }
 
