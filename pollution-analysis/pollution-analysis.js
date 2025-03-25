@@ -151,7 +151,7 @@ class PollutionAnalysis {
     getField = (iid, base, offset, val, isComputed, scope) => {
         // we need to check if the function is returned, or just a sample of the object??????
         if ((typeof base == 'function' || typeof base == 'object') && base.__x_toTaint) {
-            val.__x_toTaint = true;
+            if (val) val.__x_toTaint = true;
         }
         if (isTaintProxy(offset) && !isProtoTaintProxy(base) && !isPropertyTaintProxy(base)) {
             try {
