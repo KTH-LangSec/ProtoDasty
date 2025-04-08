@@ -10,6 +10,7 @@ const { off } = require("process");
 class PollutionAnalysis {
 
     __insideForIn = false;
+    __insideTaintedFunc = false;
 
     constructor(pkgName, resultFilename, jsonPkgName, pkgDir, executionDoneCallback) {
         this.pkgName = pkgName;
@@ -226,6 +227,8 @@ class PollutionAnalysis {
         if (isTaintProxy(f) || isProtoTaintProxy(f) || isPropertyTaintProxy(f)) return;
         // TODO dynamically check if the function is part of the exported functions
         // TODO implement readFile?
+        if (this.__insideTaintedFunc) return;
+
         if (!functionScope?.startsWith("node:")) {
 
             if (f?.name == 'entryPoint' || f?.__x_toTaint || receiver?.__x_toTaint) {
@@ -286,6 +289,7 @@ class PollutionAnalysis {
     };
 
     invokeFunPre = (iid, f, base, args, isConstructor, isMethod, functionScope, proxy, originalFun) => {
+        if (f.__x_wrapped) this.__insideTaintedFunc = true;
     };
     
     invokeFun = (iid, f, base, args, res, isConstructor, isMethod, functionScope, functionIid, functionSid) => {
@@ -326,6 +330,8 @@ class PollutionAnalysis {
                 res.__x_toTaint = true;
             }
         }
+
+        if (f.__x_wrapped) this.__insideTaintedFunc = false;
     };
     
     uncaughtException = (err, origin) => {
