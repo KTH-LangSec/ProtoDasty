@@ -12,6 +12,7 @@ const MAX_RUNS = 1;
 const NPM_INSTALL_TIMEOUT = 8 * 60 * 1000;
 
 const DEFAULT_RESULTS_COLL = 'results';
+const DEFAULT_POLLUTION_COLL = 'pollution';
 
 const TAINT_ANALYSIS = __dirname + '/../taint-analysis/';
 const POLLUTION_ANALYSIS = __dirname + '/../pollution-analysis/';
@@ -136,6 +137,7 @@ let cliArgs = {
     collPrefix: '',
     forceBranchExecCollPrefix: undefined,
     resultsCollection: DEFAULT_RESULTS_COLL,
+    pollutionCollection : DEFAULT_POLLUTION_COLL,
     sinkAnalysis: false,
     onlySinkAnalysis: false,
     repoPath: undefined,
@@ -182,6 +184,7 @@ function parseCliArgs() {
 
     // add coll prefix to results coll for compatability with --resultsCollection
     cliArgs.resultsCollection = cliArgs.collPrefix + cliArgs.resultsCollection;
+    cliArgs.pollutionCollection = cliArgs.collPrefix + cliArgs.pollutionCollection;
 
     if (cliArgs.forceBranchExecCollPrefix === undefined) {
         cliArgs.forceBranchExecCollPrefix = cliArgs.collPrefix;
@@ -370,6 +373,33 @@ async function writePackageDataToDB(pkgName, type, preAnalysisStatuses, collPref
     }
 
     await packageDataColl.updateOne({_id: pkgDataId}, {$set: {type, preAnalysisStatuses}});
+}
+
+async function writePollutionToDB(pkgName, resultFilename, pollutionCollection, collPrefix) {
+    const db = await getDb();
+    const runId = new ObjectId();
+
+    const resultsColl = await db.collection(pollutionCollection);
+
+    let pkgDataId = await resultsColl.findOne({"package": pkgName})?._id;
+    if (!pkgDataId) {
+        pkgDataId = (await resultsColl.insertOne({package: pkgName, timestamp: Date.now(), results:[]})).insertedId;
+    }
+
+    let results = [];
+
+    results.push(JSON.parse(fs.readFileSync(resultFilename, {encoding: 'utf8'})));
+
+    const run = {
+        _id: runId,
+        runName: 'pollution analysis',
+        // TODO add runExecStatus
+        results
+    }
+
+    await resultsColl.updateOne({_id: pkgDataId}, {$push: {results: run}});
+
+    return {pkgDataId, runId: runId, noFlows: results.length === 0};
 }
 
 async function writeResultsToDB(pkgName, resultId, runName, resultFilenames, taintsFilenames, branchedOnFilenames, runExecStatuses, resultsCollection, collPrefix) {
@@ -791,6 +821,21 @@ async function runPipeline(pkgName) {
             EXCLUDE_ANALYSIS_KEYWORDS,
             execFile
         );
+
+        try {
+            // TODO add execStatus
+            // const execStatuses = parseExecStatuses();
+            const result = await writePollutionToDB(pkgName, resultFilename, cliArgs.pollutionCollection, cliArgs.collPrefix);
+            // dbResultId = result.resultId;
+            // runId = result.runId;
+            // noFlows = result.noFlows;
+
+            console.error('\nCleaning up result files');
+            fs.unlinkSync(resultFilename);
+        } catch {
+            // if there is a problem writing to the database move files to not lose the data
+            console.error("ERROR WRITING", resultFilename);
+        }
 
         if (cliArgs.onlyPollution) return;
 

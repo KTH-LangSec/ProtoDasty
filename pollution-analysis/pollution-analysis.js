@@ -6,8 +6,11 @@ const { DONT_UNWRAP, DEFAULT_UNWRAP_DEPTH, EXCLUDE_INJECTION } = require("./conf
 const { emulateNodeJs, emulateBuiltin } = require("./native");
 const fs = require("fs");
 const { off } = require("process");
+const { addAndWriteFlows } = require("../taint-analysis/utils/result-handler");
 
 class PollutionAnalysis {
+
+    flows = [];
 
     __insideForIn = false;
     __insideTaintedFunc = false;
@@ -124,6 +127,17 @@ class PollutionAnalysis {
         if (isProtoTaintProxy(base)) {
             if (offset.__x_taint) {
                 console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
+
+                const newFlow = {
+                    source: base.__x_getFlowSource(),
+                    sink: {
+                        iid,
+                        type: 'put',
+                        value: val.__x_getFlowSource()
+                    }
+                }
+
+                addAndWriteFlows([newFlow], this.flows, null, this.resultFilename);
             }
             // TODO - Write prototype pollution
         } else if (isPropertyTaintProxy(base)) {
