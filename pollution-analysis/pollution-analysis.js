@@ -11,8 +11,9 @@ class PollutionAnalysis {
 
     __insideForIn = false;
 
-    constructor(pkgName, jsonPkgName, pkgDir, executionDoneCallback) {
+    constructor(pkgName, resultFilename, jsonPkgName, pkgDir, executionDoneCallback) {
         this.pkgName = pkgName;
+        this.resultFilename = resultFilename;
         this.jsonPkgName = jsonPkgName;
         this.pkgDir = pkgDir;
         this.executionDoneCallback = executionDoneCallback;

@@ -766,7 +766,7 @@ async function runPipeline(pkgName) {
         console.error('\nRunning analysis');
         let run = 0;
         let blacklistedProps = [];
-        const resultFilename = `${resultBasePath}${sanitizedPkgName}`;
+        let resultFilename = `${resultBasePath}${sanitizedPkgName}_pollution`;
         let dbResultId = null; // the db id for the current analysis run
 
         // run pollution analysis
@@ -777,15 +777,16 @@ async function runPipeline(pkgName) {
             const data = await fs_promise.readFile(`${repoPath}/package.json`, 'utf8');
             const packageJson = JSON.parse(data);
             _jsonPkgName = execFile ? Object.keys(packageJson.dependencies)[0] : packageJson.name;
-                } catch (err) {
+        } catch (err) {
             console.error('Error reading file:', err);
         }
-
+        
         await runAnalysisNodeWrapper(
             POLLUTION_ANALYSIS,
             repoPath,
             {
                 pkgName,
+                resultFilename,
                 jsonPkgName: _jsonPkgName},
             EXCLUDE_ANALYSIS_KEYWORDS,
             execFile
@@ -794,7 +795,8 @@ async function runPipeline(pkgName) {
         if (cliArgs.onlyPollution) return;
 
         let forInRun = !cliArgs.noForIn; // make one for in run
-
+            
+        resultFilename = `${resultBasePath}${sanitizedPkgName}`;
         // this is the unintrusive analysis - it is only run when onlyForceBranchExec is not set
         // the break condition is inside the loop
         while (!cliArgs.onlyForceBranchExec) {
