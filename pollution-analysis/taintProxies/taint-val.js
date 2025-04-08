@@ -155,9 +155,8 @@ class TaintProxyHandler {
                         : this.__x_copyTaint(newVal, createCodeFlow(null, 'functionResult', prop), getTypeOf(newVal))
             }.bind(this);
         }
-
         // if no function simply return the property value
-        const newVal = this.__x_val && this.__x_val[prop] ? this.__x_val[prop] : undefined;
+        const newVal = this.__x_val ? this.__x_val[prop] : undefined;
         const cf = createCodeFlow(null, 'propRead', prop);
         if (!isTaintProxy(newVal)) {
             return this.__x_copyTaint(newVal, cf, getTypeOf(newVal));
@@ -192,8 +191,10 @@ class TaintProxyHandler {
         if (codeFlow) {
             taintHandler.__x_taint.codeFlow.push(codeFlow);
         }
-        return new Proxy(() => {
+        const res = new Proxy(() => {
         }, taintHandler);
+
+        return res;
     }
 
     // Convert to primitive
@@ -291,8 +292,7 @@ class TaintProxyHandler {
             const newVal = this.__x_val && this.__x_val[prop] ? this.__x_val[prop] : undefined;
 
             const res = this.__x_copyTaint(newVal, cf, typeof newVal);
-
-            return res;
+            return this.__x_val.constructor;
         } else if (this.hasOwnProperty(prop) || TaintProxyHandler.prototype.hasOwnProperty(prop)) {
             // if the property is defined in the class delegate to it (this makes it straightforward to overwrite specific functions/members)
             // TODO how should we handle function access??
