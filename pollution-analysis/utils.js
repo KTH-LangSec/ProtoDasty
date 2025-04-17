@@ -340,7 +340,7 @@ function isTaintProxy(obj) {
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
-            && obj.__x_taint
+            && obj.hasOwnProperty("__x_taint")
             && obj.__x_taintType === TAINT_TYPE.BASIC);
     } catch (e) {
         // this for other proxies (test framework that uses proxies and throws error when undefined properties are accessed)
@@ -354,7 +354,7 @@ function isProtoTaintProxy(obj) {
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
-            && obj.__x_taint
+            && obj.hasOwnProperty("__x_taint")
             && obj.__x_taintType === TAINT_TYPE.PROTO);
     } catch (e) {
         // this for other proxies (test framework that uses proxies and throws error when undefined properties are accessed)
@@ -368,7 +368,7 @@ function isPropertyTaintProxy(obj) {
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
-            && obj.__x_taint
+            && obj.hasOwnProperty("__x_taint")
             && obj.__x_taintType === TAINT_TYPE.PROPERTY);
     } catch (e) {
         // this for other proxies (test framework that uses proxies and throws error when undefined properties are accessed)
@@ -535,6 +535,20 @@ function createInternalFunctionWrapper(iid, f, receiver, isAsync, flows, functio
     });
 }
 
+function checkToTaint(obj) {
+    try {
+        if ((typeof obj == 'function' || typeof obj == 'object')
+            && obj.hasOwnProperty("__x_toTaint") && obj.__x_toTaint) {
+
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.log("!! Impossible to check if function should be tainted !!");
+        return false;
+    }
+}
+
 module.exports = {
     iidToLocation,
     iidToSourceObject,
@@ -558,5 +572,6 @@ module.exports = {
     updateAndCheckBranchCounter,
     overlapFunctionPackage,
     checkTaintedArgs,
-    checkSubFolderImport
+    checkSubFolderImport,
+    checkToTaint
 }

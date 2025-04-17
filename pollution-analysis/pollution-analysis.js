@@ -138,11 +138,33 @@ class PollutionAnalysis {
         } else if (isPropertyTaintProxy(base)) {
             if (offset.__x_taint) {
                 console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Constructor !!\n-------------------------------------------------\n");
+
+                const newFlow = {
+                    source: base.__x_getFlowSource(),
+                    sink: {
+                        iid,
+                        type: 'put',
+                        value: val.__x_getFlowSource()
+                    }
+                }
+
+                addAndWriteFlows([newFlow], this.flows, null, this.resultFilename);
             }
             // TODO - Write prototype pollution
         } else if (typeof val.__x_val == 'object') {
             if (offset.__x_taint) {
                 console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Object !!\n-------------------------------------------------\n");
+
+                const newFlow = {
+                    source: base.__x_getFlowSource(),
+                    sink: {
+                        iid,
+                        type: 'put',
+                        value: val.__x_getFlowSource()
+                    }
+                }
+
+                addAndWriteFlows([newFlow], this.flows, null, this.resultFilename);
             }
         }
         
@@ -151,19 +173,54 @@ class PollutionAnalysis {
         if (isPropertyForIn(offset) && this.__insideForIn) {
             if (isProtoTaintProxy(base)) {
                 console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
+
+                const newFlow = {
+                    source: base.__x_getFlowSource(),
+                    sink: {
+                        iid,
+                        type: 'put',
+                        value: val.__x_getFlowSource()
+                    }
+                }
+
+                addAndWriteFlows([newFlow], this.flows, null, this.resultFilename);
             } else if (isPropertyTaintProxy(base)) {
                 console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Constructor !!\n-------------------------------------------------\n");
+
+                const newFlow = {
+                    source: base.__x_getFlowSource(),
+                    sink: {
+                        iid,
+                        type: 'put',
+                        value: val.__x_getFlowSource()
+                    }
+                }
+
+                addAndWriteFlows([newFlow], this.flows, null, this.resultFilename);
             } else if (typeof val.__x_val == 'object') {
                 console.log("\n-------------------------------------------------\n   !! Found Prototype Pollution Object !!\n-------------------------------------------------\n");
+
+                const newFlow = {
+                    source: base.__x_getFlowSource(),
+                    sink: {
+                        iid,
+                        type: 'put',
+                        value: val.__x_getFlowSource()
+                    }
+                }
+
+                addAndWriteFlows([newFlow], this.flows, null, this.resultFilename);
             }
         } 
     }
 
     getField = (iid, base, offset, val, isComputed, scope) => {
         // we need to check if the function is returned, or just a sample of the object??????
-        if ((typeof base == 'function' || typeof base == 'object') && base.__x_toTaint) {
-            if (val) val.__x_toTaint = true;
-        }
+        // !! Check if we actually need to do this since with automatic testing we always know the function we are supposed to taint
+        // if (checkToTaint(base)) {
+        //     if (val) val.__x_toTaint = true;
+        // }
+    
         if (isTaintProxy(offset) && !isProtoTaintProxy(base) && !isPropertyTaintProxy(base)) {
             try {
                 const cf = createCodeFlow(iid, 'propertyReadName', offset.__x_val);
