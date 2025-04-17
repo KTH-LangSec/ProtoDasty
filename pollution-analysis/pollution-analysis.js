@@ -1,5 +1,5 @@
 // DO NOT INSTRUMENT
-const { isTaintProxy, isProtoTaintProxy, isPropertyTaintProxy, checkSubFolderImport, unwrapDeep, taintCompResult, iidToLocation, overlapFunctionPackage, checkTaintedArgs } = require("./utils");
+const { isTaintProxy, isProtoTaintProxy, isPropertyTaintProxy, checkSubFolderImport, unwrapDeep, taintCompResult, iidToLocation, overlapFunctionPackage, checkTaintedArgs, checkToTaint } = require("./utils");
 const { createTaintVal, createCodeFlow, allTaintValues, getTypeOf, checkForInKey, cleanOwnKeysArray, isPropertyForIn, getPropertyTaint, createTaintValFromHandler } = require("./taintProxies/taint-val");
 const { TAINT_TYPE } = require("./taintProxies/taint-val");
 const { DONT_UNWRAP, DEFAULT_UNWRAP_DEPTH, EXCLUDE_INJECTION } = require("./conf/analysis-conf");
@@ -13,7 +13,6 @@ class PollutionAnalysis {
     flows = [];
 
     __insideForIn = false;
-    __insideTaintedFunc = false;
 
     constructor(pkgName, resultFilename, jsonPkgName, pkgDir, executionDoneCallback) {
         this.pkgName = pkgName;
@@ -38,7 +37,6 @@ class PollutionAnalysis {
     _return = (iid, val) => {
     };
     
-    // TODO review this code
     unary = (iid, op, left, result) => {
         // change typeof of tainted object to circumvent type checks
         if (!isTaintProxy(left) && !isProtoTaintProxy(left) && !isPropertyTaintProxy(left)) return;
@@ -55,7 +53,6 @@ class PollutionAnalysis {
         }
     }
 
-    // TODO review this code
     conditional = (iid, input, result, isValue) => {
         if (!isTaintProxy(input) && !isProtoTaintProxy(input) && !isPropertyTaintProxy(input)) return;
 
@@ -67,12 +64,10 @@ class PollutionAnalysis {
         return {result: !!input.__x_val};
     }
     
-    // TODO review this code
     binaryPre = (iid, op, left, right) => {
         // console.log("Binary", left.__x_val, `(${!!left?.__x_taint})`, op, right, `(${!!right?.__x_taint})`, "=\n", iidToLocation(iid));
     }
     
-    // TODO review this code
     binary = (iid, op, left, right, result, isLogic) => {
         // console.log("Binary", left.__x_val, `(${!!left?.__x_taint})`, op, right, `(${!!right?.__x_taint})`, `= ${result}\n`, iidToLocation(iid));
         // ToDo - handle notUndefinedOr (default value for object deconstruction e.g. {prop = []})
@@ -235,19 +230,21 @@ class PollutionAnalysis {
         this.__insideForIn = false;
     }
 
-    // TODO add checks for readFile functions
     invokeFunStart = (iid, f, receiver, index, isConstructor, isAsync, functionScope, imports) => {
-        if (f?.__x_wrapped) return;
+        try {
+            if (f?.__x_wrapped) return;
+        } catch (erro) {
+            // console.log("Problem with function", f.name, functionScope);
+            return;
+        }
         if (isTaintProxy(f) || isProtoTaintProxy(f) || isPropertyTaintProxy(f)) return;
         // TODO dynamically check if the function is part of the exported functions
         // TODO implement readFile?
-        if (this.__insideTaintedFunc) return;
-
+        
         if (!functionScope?.startsWith("node:")) {
 
-            if (f?.name == 'entryPoint' || f?.__x_toTaint || receiver?.__x_toTaint) {
-            // if (f?.__x_toTaint || receiver?.__x_toTaint) {
-                console.log("Polluted", f.name);
+            if (f?.name == 'entryPoint' || checkToTaint(f) || checkToTaint(receiver)) {
+                console.log("!! Polluted !!", f.name);
                 
                 const internalWrapperTaints = function (...args) {
                     args?.forEach((arg, index) => {
@@ -303,7 +300,9 @@ class PollutionAnalysis {
     };
 
     invokeFunPre = (iid, f, base, args, isConstructor, isMethod, functionScope, proxy, originalFun) => {
-        if (f.__x_wrapped) this.__insideTaintedFunc = true;
+        if (f.name == 'fuzz' && typeof args[0] == 'function') {
+            args[0].__x_toTaint = true;
+        }
     };
     
     invokeFun = (iid, f, base, args, res, isConstructor, isMethod, functionScope, functionIid, functionSid) => {
@@ -335,17 +334,16 @@ class PollutionAnalysis {
             }
         }
 
-        if (f.name == 'require') {
-            // ToDo: verify how to check if it really belongs to the package being analysed
-            // if ((overlapFunctionPackage(args[0], this.pkgName) || args[0] == this.jsonPkgName) &&
-            if (checkSubFolderImport(this.jsonPkgName, args[0]) &&
-            (typeof res === 'function' || typeof res === 'object')) {
-                console.log("\tFunction: ", f.name, args);
-                res.__x_toTaint = true;
-            }
-        }
+        // if (f.name == 'require') {
+        //     // ToDo: verify how to check if it really belongs to the package being analysed
+        //     // if ((overlapFunctionPackage(args[0], this.pkgName) || args[0] == this.jsonPkgName) &&
+        //     if (checkSubFolderImport(this.jsonPkgName, args[0]) &&
+        //     (typeof res === 'function' || typeof res === 'object')) {
+        //         console.log("\tFunction: ", f.name, args);
+        //         res.__x_toTaint = true;
+        //     }
+        // }
 
-        if (f.__x_wrapped) this.__insideTaintedFunc = false;
     };
     
     uncaughtException = (err, origin) => {
