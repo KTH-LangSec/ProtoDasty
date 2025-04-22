@@ -6,6 +6,7 @@ const {ObjectId, Db} = require("mongodb");
 const path = require("path");
 const {sanitizePkgName} = require("./utils/utils");
 const {removeDuplicateFlows, removeDuplicateTaints} = require("../taint-analysis/utils/result-handler");
+const {generateFuzzTarget} = require("./node-wrapper/template_generator");
 
 const DEFAULT_TIMEOUT = -1;
 const MAX_RUNS = 1;
@@ -195,7 +196,6 @@ function parseCliArgs() {
 }
 
 function execCmd(cmd, args, workingDir = null, live = false, throwOnErr = true, timeout = DEFAULT_TIMEOUT) {
-    console.error(cmd + ' ' + args.join(' ') + '\n');
 
     return new Promise((resolve, reject) => {
         const options = workingDir ? {cwd: workingDir} : {};
@@ -350,12 +350,20 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
         }
     }
     params += ` --initParam pkgDir:${dir}`;
-
     fs.writeFileSync(driverDir + '/params.txt', params, {encoding: 'utf8'});
 
     // delete previous status file
     if (fs.existsSync(driverStatusFile)) {
         fs.unlinkSync(driverStatusFile);
+    }
+
+    // ! if pollution analysis we need to change our approach
+    if (analysis == POLLUTION_ANALYSIS) {
+        console.log("Performing Fuzzing:");
+        generateFuzzTarget(initParams["pkgName"], driverDir);
+        // Call driver that will create the files in which the fuzzing/analysis will be done
+        // todo exec jazzer to get fuzzing inputs
+        // specify where the analysis should look for the fuzzing inputs
     }
 
     const cmd = execFile ? driverDir + '/node' : driverDir + '/npm';
@@ -808,7 +816,7 @@ async function runPipeline(pkgName) {
             const packageJson = JSON.parse(data);
             _jsonPkgName = execFile ? Object.keys(packageJson.dependencies)[0] : packageJson.name;
         } catch (err) {
-            console.error('Error reading file:', err);
+            console.error('Error reading file:', `${repoPath}/package.json`);
         }
         
         await runAnalysisNodeWrapper(
