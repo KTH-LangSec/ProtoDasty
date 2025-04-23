@@ -98,13 +98,14 @@ function generateFuzzParamsCall(exportName, exportInfo) {
       code += `    const ${paramName} = ${data_name}.consumeString(16, "utf-8");\n`;
       params.push(paramName);
     }
-    
-    code += `    let data_to_append = "";\n\n`
-
+    code += "\n\n";
     if (exportName === '__main__pkg') {
       // Original call with all parameters
       code += `    packageModule(${params.join(', ')});\n`;
-      code += `    data_to_append += \`__main__pkg:\$${params.join(', ')}}\\n\`;\n\n`;
+      code += `    data_to_append.push({\n`;
+      code += `      "function_name": "${exportName}",\n`;
+      code += `      "args": [ ${params.join(', ')} ]\n`;
+      code += `    });\n\n`;
       
       // Generate a call for each parameter replaced by {}
       for (let i = 0; i < params.length; i++) {
@@ -112,13 +113,19 @@ function generateFuzzParamsCall(exportName, exportInfo) {
           index === i ? '{}' : param
       );
       code += `    packageModule(${modifiedParams.join(', ')});\n`;
-      code += `    data_to_append += \`__main__pkg:\${${modifiedParams.join(', ')}}\\n\`;\n\n`;
+      code += `    data_to_append.push({\n`;
+      code += `      "function_name": "${exportName}",\n`;
+      code += `      "args": [ ${params.join(', ')} ]\n`;
+      code += `    });\n\n`;
     }
     
     // TODO save the inputs to a seperate file
     } else {
       code += `    packageModule.${exportName}(${params.join(', ')});\n`;
-      code += `    data_to_append += \`${exportName}:\${${params.join(', ')}}\\n\`;\n\n`;
+      code += `    data_to_append.push({\n`;
+      code += `      "function_name": "${exportName}",\n`;
+      code += `      "args": [ ${params.join(', ')} ]\n`;
+      code += `    });\n\n`;
       
       // Generate a call for each parameter replaced by {}
       for (let i = 0; i < params.length; i++) {
@@ -127,13 +134,13 @@ function generateFuzzParamsCall(exportName, exportInfo) {
         );
 
         code += `    packageModule.${exportName}(${modifiedParams.join(', ')});\n`;
-        code += `    data_to_append += \`${exportName}:\${${modifiedParams.join(', ')}}\\n\`;\n\n`;
+        code += `    data_to_append.push({\n`;
+        code += `      "function_name": "${exportName}",\n`;
+        code += `      "args": [ ${params.join(', ')} ]\n`;
+        code += `    });\n\n`;
       }
     }
     
-    // Save arguments to file
-    code += `    fs.appendFileSync('./fuzzing_results.txt', data_to_append, function (err) {});\n`;
-
     code += `  } catch (e) {\n    // Catching exceptions to prevent crashes\n  }\n\n`;
 
 
@@ -164,6 +171,13 @@ function generateFuzzCode(packageName, packageModule) {
   // Generate the fuzz function
   code += `// file "FuzzTarget.js"\n`;
   code += `module.exports.fuzz = function(fuzzerInputData) {\n`;
+  code += `  let data_to_append = [];\n`;
+  code += `  try {\n`;
+  code += `    const rawData = fs.readFileSync(__dirname + "/fuzzing_results.json", 'utf-8');\n`;
+  code += `    data_to_append = JSON.parse(rawData);\n`;
+  code += `  } catch (error) {\n`;
+  code += `    if (error.code !== 'ENOENT') throw error;\n`;
+  code += `  }\n`
   
   // Add code to test each function export
   let hasFunctions = false;
@@ -180,7 +194,8 @@ function generateFuzzCode(packageName, packageModule) {
   if (!hasFunctions) {
     code += `  console.log("No specific functions identified, testing with generic objects");\n`;
   }
-  
+  code += `  fs.writeFileSync(__dirname + "/fuzzing_results.json", JSON.stringify(data_to_append));\n`;
+
   code += `};\n`;
   
   return code;
