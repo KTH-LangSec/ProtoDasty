@@ -384,6 +384,7 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
         // Call driver that will create the files in which the fuzzing/analysis will be done
         // todo exec jazzer to get fuzzing inputs
         // specify where the analysis should look for the fuzzing inputs
+        return;
     }
 
     const cmd = execFile ? driverDir + '/node' : driverDir + '/npm';
@@ -416,8 +417,6 @@ async function writePollutionToDB(pkgName, resultFilename, pollutionCollection, 
 
     let results = [];
 
-    console.log("OPENNING FILE");
-
     try {
         results.push(JSON.parse(fs.readFileSync(resultFilename, {encoding: 'utf8'})));
     } catch (err) {
@@ -427,7 +426,6 @@ async function writePollutionToDB(pkgName, resultFilename, pollutionCollection, 
             console.log("err", err, err.code == 'ENOENT');
         }
     }    
-    console.log("Opened file");
 
     const run = {
         _id: runId,
