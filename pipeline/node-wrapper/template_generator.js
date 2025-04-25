@@ -115,7 +115,7 @@ function generateFuzzParamsCall(exportName, exportInfo) {
       code += `    packageModule(${modifiedParams.join(', ')});\n`;
       code += `    data_to_append.push({\n`;
       code += `      "function_name": "${exportName}",\n`;
-      code += `      "args": [ ${params.join(', ')} ]\n`;
+      code += `      "args": [ ${modifiedParams.join(', ')} ]\n`;
       code += `    });\n\n`;
     }
     
@@ -136,7 +136,7 @@ function generateFuzzParamsCall(exportName, exportInfo) {
         code += `    packageModule.${exportName}(${modifiedParams.join(', ')});\n`;
         code += `    data_to_append.push({\n`;
         code += `      "function_name": "${exportName}",\n`;
-        code += `      "args": [ ${params.join(', ')} ]\n`;
+        code += `      "args": [ ${modifiedParams.join(', ')} ]\n`;
         code += `    });\n\n`;
       }
     }
