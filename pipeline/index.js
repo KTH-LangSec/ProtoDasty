@@ -361,6 +361,26 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
     if (analysis == POLLUTION_ANALYSIS) {
         console.log("Performing Fuzzing:");
         generateFuzzTarget(initParams["pkgName"], driverDir);
+        
+        function cmd(...command) {
+            let p = spawn(command[0], command.slice(1));
+            return new Promise((resolveFunc) => {
+                p.stdout.on("data", (x) => {
+                    process.stdout.write(x.toString());
+                });
+                p.stderr.on("data", (x) => {
+                    process.stderr.write(x.toString());
+                });
+                p.on("exit", (code) => {
+                    resolveFunc(code);
+                });
+            });
+        }
+        
+        let fuzz_runs = 10000
+        let npx_command = `npx jazzer ${driverDir}/FuzzTarget --sync --coverage -- -runs=${fuzz_runs}`
+        console.log("Executing Fuzzing with Jazzer");
+        await cmd("bash", "-c", npx_command);
         // Call driver that will create the files in which the fuzzing/analysis will be done
         // todo exec jazzer to get fuzzing inputs
         // specify where the analysis should look for the fuzzing inputs
@@ -396,7 +416,18 @@ async function writePollutionToDB(pkgName, resultFilename, pollutionCollection, 
 
     let results = [];
 
-    results.push(JSON.parse(fs.readFileSync(resultFilename, {encoding: 'utf8'})));
+    console.log("OPENNING FILE");
+
+    try {
+        results.push(JSON.parse(fs.readFileSync(resultFilename, {encoding: 'utf8'})));
+    } catch (err) {
+        if (err.code == 'ENOENT') {
+            results.push([]);
+        } else {
+            console.log("err", err, err.code == 'ENOENT');
+        }
+    }    
+    console.log("Opened file");
 
     const run = {
         _id: runId,
@@ -839,10 +870,14 @@ async function runPipeline(pkgName) {
             // noFlows = result.noFlows;
 
             console.error('\nCleaning up result files');
-            fs.unlinkSync(resultFilename);
-        } catch {
+            try {
+                fs.unlinkSync(resultFilename);
+            } catch (err) {
+                if (err.code !== 'ENOENT') throw err;
+            }
+        } catch (error) {
             // if there is a problem writing to the database move files to not lose the data
-            console.error("ERROR WRITING", resultFilename);
+            console.error("ERROR WRITING", resultFilename, "\n", error);
         }
 
         if (cliArgs.onlyPollution) return;
