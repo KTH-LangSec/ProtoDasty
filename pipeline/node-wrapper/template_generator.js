@@ -19,6 +19,62 @@ function generateFuzzTarget(packageName, outputPath) {
   }
 }
 
+function generateTaintTarget(packageName, outputPath) {
+  try {
+    // Dynamically require the package to analyze
+    const packagePath = `${__dirname}/../packages/${packageName}`;
+    const packageModule = require(`${getMainFilePackage(packagePath)}`);
+    // Generate the fuzzing code
+    const taintCode = generateTaintCode(packageName, packageModule);
+    
+    // Write the fuzzing code to a file
+    fs.writeFileSync(path.join(outputPath, 'TaintTarget.js'), taintCode);
+    console.log(`Successfully generated TaintTarget.js for ${packageName}`);
+  } catch (error) {
+    console.error(`Error generating tainting code for ${packageName}:`, error);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ----------------------------------------------------------------- //
+//                      Helper Function                              //
+// ----------------------------------------------------------------- //
+
+
+
 // Create the Parameter Name according to the function path name
 function generateParamName(functionPath, i) {
   const newPath = functionPath.replace(/\./g, '_');
@@ -78,9 +134,6 @@ function analyzeExports(packageModule) {
   
   return exports;
 }
-
-// Generate the call to the function with the appropriate number of argument calls
-
 
 // Generate the arguments and function calls for fuzzing
 function generateFuzzParamsCall(exportName, exportInfo) {
@@ -156,6 +209,62 @@ function generateFuzzParamsCall(exportName, exportInfo) {
   return code;
 }
 
+function generateTaintFuncCall(exportName, exportInfo) {
+  let code = '';
+
+  if (exportInfo.type === 'function') {
+    if (exportName === '__main__pkg') {
+      code += `        case "__main__pkg":\n`;
+      code += `          packageModule(...args);\n`;
+      code += `          break;\n`;
+    } else {
+      code += `        case "${exportName}":\n`;
+      code += `          packageModule.${exportName}(...args);\n`;
+      code += `          break;\n`;
+    }
+  } else if (exportInfo.type === 'object') {
+    // TODO handle multiple accesses
+    // const analysis = generateFuzzParamsCall()
+    for (const [_name, _value] of Object.entries(exportInfo.properties)) {
+      let _new_name = `${exportName}.${_name}`
+      code += generateTaintFuncCall(_new_name, _value)
+    }
+  }
+
+  return code;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ----------------------------------------------------------------- //
+//                       Main Code Functions                         //
+// ----------------------------------------------------------------- //
+
+
 // Generate fuzzing code based on the package's exports
 function generateFuzzCode(packageName, packageModule) {
   const exports = analyzeExports(packageModule);
@@ -201,6 +310,73 @@ function generateFuzzCode(packageName, packageModule) {
   return code;
 }
 
+function generateTaintCode(packageName, packageModule) {
+  const exports = analyzeExports(packageModule);
+
+  // Start with the standard imports
+  let packagePath = `${__dirname}/../packages/${packageName}`;
+  const main_file = `${getMainFilePackage(packagePath)}`;  
+
+  let code = `const { FuzzedDataProvider } = require("@jazzer.js/core");\n`;
+  code += `const packageModule = require("${main_file}");\n`;
+  code += `const fs = require('fs')\n\n`;
+
+  // Generate the fuzz function
+  code += `process.on('unhandledRejection', function(reason, p){\n`;
+  code += `  //call handler here\n`
+  code += `});\n\n`
+
+  code += `process.on('uncaughtException', function(error) {\n`;
+  code += `  // call handler\n`;
+  code += `});\n\n`;
+
+  code += `// file "TaintTarget.js"\n`;
+  code += `function main () {\n`;
+  code += `  let fuzzed_results = [];\n`;
+  code += `  try {\n`;
+  code += `    const rawData = fs.readFileSync(__dirname + "/fuzzing_results.json", 'utf-8');\n`;
+  code += `    fuzzed_results = JSON.parse(rawData);\n`;
+  code += `  } catch (error) {\n`;
+  code += `    if (error.code !== 'ENOENT') throw error;\n`;
+  code += `  }\n\n`;
+
+  code += `  for (const item of fuzzed_results) {\n`;
+  code += `    let func_name = item.function_name;\n`;
+  code += `    let args = item.args;\n\n`
+
+  let hasFunctions = false;
+  code += '    try {\n';
+  code += `      switch (func_name) {\n`;
+  console.log("|!!!!!!!!!!!!!!!!!!!!!!!!\n", exports);
+  for (const [exportName, exportInfo] of Object.entries(exports)) {
+    // TODO check recursively for functions with properties
+    const result = generateTaintFuncCall(exportName, exportInfo)
+    console.log("Generated Result for", exportName);
+    if (result != '') {
+      hasFunctions = true;
+      code += result;
+    }
+  }
+
+  code += `        default:\n`;
+  code += `          console.log("Danger!!!!! Function not found!");\n`;
+  code += `      }\n`;
+  code += `    } catch (e) {\n      // pass errors\n    }\n\n`;
+
+  // If no functions were found, add a generic test
+  if (!hasFunctions) {
+    code += `    console.log("No specific functions identified, testing with generic objects");\n`;
+  }
+
+  code += `  }\n`;
+  code += `}\n\n`;
+
+  code += `main();\n`;
+  
+  return code;
+}
+
 module.exports = {
-  generateFuzzTarget
+  generateFuzzTarget,
+  generateTaintTarget
 }

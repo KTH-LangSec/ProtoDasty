@@ -6,7 +6,7 @@ const {ObjectId, Db} = require("mongodb");
 const path = require("path");
 const {sanitizePkgName} = require("./utils/utils");
 const {removeDuplicateFlows, removeDuplicateTaints} = require("../taint-analysis/utils/result-handler");
-const {generateFuzzTarget} = require("./node-wrapper/template_generator");
+const {generateFuzzTarget, generateTaintTarget} = require("./node-wrapper/template_generator");
 
 const DEFAULT_TIMEOUT = -1;
 const MAX_RUNS = 1;
@@ -360,7 +360,9 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
     // ! if pollution analysis we need to change our approach
     if (analysis == POLLUTION_ANALYSIS) {
         console.log("Performing Fuzzing:");
+        // Call driver that will create the files in which the fuzzing/analysis will be done
         generateFuzzTarget(initParams["pkgName"], driverDir);
+        generateTaintTarget(initParams["pkgName"], driverDir);
         
         function cmd(...command) {
             let p = spawn(command[0], command.slice(1));
@@ -380,10 +382,12 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
         let fuzz_runs = 10000
         let npx_command = `npx jazzer ${driverDir}/FuzzTarget --sync --coverage -- -runs=${fuzz_runs}`
         console.log("Executing Fuzzing with Jazzer");
-        await cmd("bash", "-c", npx_command);
-        // Call driver that will create the files in which the fuzzing/analysis will be done
         // todo exec jazzer to get fuzzing inputs
+        await cmd("bash", "-c", npx_command);
+
+
         // specify where the analysis should look for the fuzzing inputs
+        await new Promise(r => setTimeout(r, 2000));
         return;
     }
 
