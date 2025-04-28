@@ -276,6 +276,14 @@ function generateFuzzCode(packageName, packageModule) {
   let code = `const { FuzzedDataProvider } = require("@jazzer.js/core");\n`;
   code += `const packageModule = require("${main_file}");\n`;
   code += `const fs = require('fs')\n\n`;
+
+  code += `process.on('unhandledRejection', function(reason, p){\n`;
+  code += `  //call handler here\n`
+  code += `});\n\n`
+
+  code += `process.on('uncaughtException', function(error) {\n`;
+  code += `  // call handler\n`;
+  code += `});\n\n`;
   
   // Generate the fuzz function
   code += `// file "FuzzTarget.js"\n`;
