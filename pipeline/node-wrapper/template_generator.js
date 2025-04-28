@@ -347,11 +347,9 @@ function generateTaintCode(packageName, packageModule) {
   let hasFunctions = false;
   code += '    try {\n';
   code += `      switch (func_name) {\n`;
-  console.log("|!!!!!!!!!!!!!!!!!!!!!!!!\n", exports);
   for (const [exportName, exportInfo] of Object.entries(exports)) {
     // TODO check recursively for functions with properties
     const result = generateTaintFuncCall(exportName, exportInfo)
-    console.log("Generated Result for", exportName);
     if (result != '') {
       hasFunctions = true;
       code += result;
