@@ -359,7 +359,6 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
 
     // ! if pollution analysis we need to change our approach
     if (analysis == POLLUTION_ANALYSIS) {
-        console.log("Performing Fuzzing:");
         // Call driver that will create the files in which the fuzzing/analysis will be done
         generateFuzzTarget(initParams["pkgName"], driverDir);
         generateTaintTarget(initParams["pkgName"], driverDir);
@@ -379,15 +378,19 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
             });
         }
         
-        let fuzz_runs = 10000
-        let npx_command = `npx jazzer ${driverDir}/FuzzTarget --sync --coverage -- -runs=${fuzz_runs}`
-        console.log("Executing Fuzzing with Jazzer");
+        let fuzz_runs = 100
+        let npx_command = `npx jazzer ${driverDir}/FuzzTarget --sync --coverage -- -rss_limit_mb=4096 -runs=${fuzz_runs}`
+        console.log("\n\nExecuting Fuzzing with Jazzer\n\n");
         // todo exec jazzer to get fuzzing inputs
-        await cmd("bash", "-c", npx_command);
-
-
+        try {
+            await cmd("bash", "-c", npx_command);
+        } catch (e) {
+            // pass error?
+        }
+        
+        console.log("\n\nExecuting exec File\n\n");
+        execFile = `${driverDir}/TaintTarget.js`;
         // specify where the analysis should look for the fuzzing inputs
-        await new Promise(r => setTimeout(r, 2000));
         return;
     }
 
