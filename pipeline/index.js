@@ -358,7 +358,7 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
     }
 
     // ! if pollution analysis we need to change our approach
-    if (analysis == POLLUTION_ANALYSIS) {
+    if (analysis == POLLUTION_ANALYSIS && execFile == null) {
         // Call driver that will create the files in which the fuzzing/analysis will be done
         generateFuzzTarget(initParams["pkgName"], driverDir);
         generateTaintTarget(initParams["pkgName"], driverDir);
