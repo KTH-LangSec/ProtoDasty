@@ -340,7 +340,7 @@ function isTaintProxy(obj) {
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
-            && obj.hasOwnProperty("__x_taint")
+            && obj.__x_taint !== undefined
             && obj.__x_taintType === TAINT_TYPE.BASIC);
     } catch (e) {
         // this for other proxies (test framework that uses proxies and throws error when undefined properties are accessed)
@@ -354,7 +354,7 @@ function isProtoTaintProxy(obj) {
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
-            && obj.hasOwnProperty("__x_taint")
+            && obj.__x_taint !== undefined
             && obj.__x_taintType === TAINT_TYPE.PROTO);
     } catch (e) {
         // this for other proxies (test framework that uses proxies and throws error when undefined properties are accessed)
@@ -368,7 +368,7 @@ function isPropertyTaintProxy(obj) {
     try {
         return !!(obj !== null && obj !== undefined
             && typeof obj === 'function'
-            && obj.hasOwnProperty("__x_taint")
+            && obj.__x_taint !== undefined
             && obj.__x_taintType === TAINT_TYPE.PROPERTY);
     } catch (e) {
         // this for other proxies (test framework that uses proxies and throws error when undefined properties are accessed)
