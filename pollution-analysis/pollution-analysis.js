@@ -55,7 +55,6 @@ class PollutionAnalysis {
 
     conditional = (iid, input, result, isValue) => {
         if (!isTaintProxy(input) && !isProtoTaintProxy(input) && !isPropertyTaintProxy(input)) return;
-
         // if it is a taint proxy and the underlying value is undefined result to false
         // addAndWriteBranchedOn(input.__x_taint.source.prop, iid, input.__x_val, this.branchedOn, this.branchedOnFilename);
         const res = typeof input.__x_val === 'object' ? {} : input.__x_val; // don't store full object in code-flow -  can lead to structured clone and other problems
@@ -99,8 +98,8 @@ class PollutionAnalysis {
                 } else {
                     // if left is not falsy wrap result
                     // TODO handle taints
-                    const compRes = taintCompResult(left, right, op)
-                    return {result: right};
+                    if (!isTaintProxy(right) && !isProtoTaintProxy(right) && !isPropertyTaintProxy(right)) return {result: !!right};
+                    return {result: !!right.__x_val};
                 }
             case '+':
                 // Todo - look into string Template Literals (it works but the other side is always '')
@@ -119,6 +118,7 @@ class PollutionAnalysis {
 
     putField = (iid, base, offset, val, isComputed, isOpAssign) => {
         if (!isTaintProxy(val) && !isProtoTaintProxy(val) && !isPropertyTaintProxy(val)) return;
+        // TODO update so offset is not required to be tainted.
         if (isProtoTaintProxy(base)) {
             if (offset.__x_taint) {
                 console.log("\n-------------------------------------\n   !! Found Prototype Pollution !!\n-------------------------------------\n");
@@ -215,12 +215,8 @@ class PollutionAnalysis {
     }
 
     getField = (iid, base, offset, val, isComputed, scope) => {
-        // we need to check if the function is returned, or just a sample of the object??????
-        // !! Check if we actually need to do this since with automatic testing we always know the function we are supposed to taint
-        // if (checkToTaint(base)) {
-        //     if (val) val.__x_toTaint = true;
-        // }
-    
+        if (base == undefined || base == null) return;
+
         if (isTaintProxy(offset) && !isProtoTaintProxy(base) && !isPropertyTaintProxy(base)) {
             try {
                 const cf = createCodeFlow(iid, 'propertyReadName', offset.__x_val);
@@ -291,12 +287,9 @@ class PollutionAnalysis {
         try {
             if (f?.__x_wrapped) return;
         } catch (erro) {
-            // console.log("Problem with function", f.name, functionScope);
             return;
         }
         if (isTaintProxy(f) || isProtoTaintProxy(f) || isPropertyTaintProxy(f)) return;
-        // TODO dynamically check if the function is part of the exported functions
-        // TODO implement readFile?
         
         if (!functionScope?.startsWith("node:")) {
 
@@ -335,30 +328,17 @@ class PollutionAnalysis {
                 return { result: internalWrapperTaints};
             }
         }
-        // TODO check where this is needed
-        // if (f?.name == 'call') {
-        //     if (receiver.name == 'relative') {
-        //         const relativeCallWrapper = function (...args) {
-
-        //             if (!args[1]?.__x_val && !args[2]?.__x_val) return;
-                    
-        //             const safeArg1 = args[1].__x_val ?? args[1];
-        //             const safeArg2 = args[2].__x_val ?? args[2];
-                    
-        //             const cf = createCodeFlow(iid, 'relativePath', 'Path.relative');
-                    
-        //             return args[1].__x_val
-        //             ? args[1].__x_copyTaint(args[0].relative(safeArg1, safeArg2), cf, 'string')
-        //             : args[2].__x_copyTaint(args[0].relative(safeArg1, safeArg2), cf, 'string');
-        //         }
-        //         return {result: relativeCallWrapper};
-        //     }
-        // }
     };
 
     invokeFunPre = (iid, f, base, args, isConstructor, isMethod, functionScope, proxy, originalFun) => {
         if (f.name == 'fuzz' && typeof args[0] == 'function') {
             args[0].__x_toTaint = true;
+        }
+
+        if (f.name == 'readFile' || f.name == 'readFileSync') {
+            if (checkTaintedArgs(args)) {
+                console.log("readFile called");
+            }
         }
     };
     
@@ -391,15 +371,15 @@ class PollutionAnalysis {
             }
         }
 
-        // if (f.name == 'require') {
-        //     // ToDo: verify how to check if it really belongs to the package being analysed
-        //     // if ((overlapFunctionPackage(args[0], this.pkgName) || args[0] == this.jsonPkgName) &&
-        //     if (checkSubFolderImport(this.jsonPkgName, args[0]) &&
-        //     (typeof res === 'function' || typeof res === 'object')) {
-        //         console.log("\tFunction: ", f.name, args);
-        //         res.__x_toTaint = true;
-        //     }
-        // }
+        if (f.name == 'require') {
+            // ToDo: verify how to check if it really belongs to the package being analysed
+            // if ((overlapFunctionPackage(args[0], this.pkgName) || args[0] == this.jsonPkgName) &&
+            if (checkSubFolderImport(this.jsonPkgName, args[0]) &&
+            (typeof res === 'function' || typeof res === 'object')) {
+                console.log("\tFunction:", f.name, args);
+                res.__x_toTaint = true;
+            }
+        }
 
     };
     

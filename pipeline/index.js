@@ -844,6 +844,28 @@ async function runPipeline(pkgName) {
         // run pollution analysis
         // TODO prepare this better
         console.log('Running pollution analysis');
+        // First we need to install the module
+        function cmd(...command) {
+            let p = spawn(command[0], command.slice(1));
+            return new Promise((resolveFunc) => {
+                p.stdout.on("data", (x) => {
+                    process.stdout.write(x.toString());
+                });
+                p.stderr.on("data", (x) => {
+                    process.stderr.write(x.toString());
+                });
+                p.on("exit", (code) => {
+                    resolveFunc(code);
+                });
+            });
+        }
+
+        try {
+            await cmd("npm", "install", pkgName);
+        } catch (e) {
+            throw e;
+        }
+
         let _jsonPkgName = null;
         try {
             const data = await fs_promise.readFile(`${repoPath}/package.json`, 'utf8');
@@ -881,6 +903,12 @@ async function runPipeline(pkgName) {
         } catch (error) {
             // if there is a problem writing to the database move files to not lose the data
             console.error("ERROR WRITING", resultFilename, "\n", error);
+        }
+
+        try {
+            await cmd("npm uninstall", pkgName);
+        } catch (e) {
+            throw e;
         }
 
         if (cliArgs.onlyPollution) return;

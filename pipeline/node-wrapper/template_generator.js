@@ -3,11 +3,13 @@ const fs = require('fs');
 const path = require('path');
 
 // Function to generate a fuzzing test for a specific package
-function generateFuzzTarget(packageName, outputPath) {
+async function generateFuzzTarget(packageName, outputPath) {
   try {
     // Dynamically require the package to analyze
     const packagePath = `${__dirname}/../packages/${packageName}`;
-    const packageModule = require(`${getMainFilePackage(packagePath)}`);
+    const packageModule = await import(packageName);
+    console.log(packageModule)
+
     // Generate the fuzzing code
     const fuzzCode = generateFuzzCode(packageName, packageModule);
     
@@ -19,11 +21,11 @@ function generateFuzzTarget(packageName, outputPath) {
   }
 }
 
-function generateTaintTarget(packageName, outputPath) {
+async function generateTaintTarget(packageName, outputPath) {
   try {
     // Dynamically require the package to analyze
     const packagePath = `${__dirname}/../packages/${packageName}`;
-    const packageModule = require(`${getMainFilePackage(packagePath)}`);
+    const packageModule = await import(packageName);
     // Generate the fuzzing code
     const taintCode = generateTaintCode(packageName, packageModule);
     
@@ -99,34 +101,21 @@ function getMainFilePackage(packagePath) {
 // Helper function to determine the type of each export
 function analyzeExports(packageModule) {
   const exports = {};
-  
+
   if (typeof packageModule === 'function') {
     exports['__main__pkg'] = {
       type: 'function',
       paramCount: packageModule.length
     }
-  } else if (typeof packageModule === 'object') {
+  } else {
     for (const key in packageModule) {
       const value = packageModule[key];
-      const type = typeof value;
 
-      if (type === 'function') {
+      if (typeof value === 'function') {
         // For functions, we'll try to determine the expected parameters
         exports[key] = {
           type: 'function',
           paramCount: value.length // Number of expected arguments
-        };
-      } else if (type === 'object' && value !== null) {
-        // For nested objects, recursively analyze them
-        exports[key] = {
-          type: 'object',
-          properties: analyzeExports(value)
-        };
-      } else {
-        // For primitive values
-        exports[key] = {
-          type: type,
-          value: value
         };
       }
     }
@@ -268,13 +257,12 @@ function generateTaintFuncCall(exportName, exportInfo) {
 // Generate fuzzing code based on the package's exports
 function generateFuzzCode(packageName, packageModule) {
   const exports = analyzeExports(packageModule);
-  
   // Start with the standard imports
   let packagePath = `${__dirname}/../packages/${packageName}`;
   const main_file = `${getMainFilePackage(packagePath)}`;
 
   let code = `const { FuzzedDataProvider } = require("@jazzer.js/core");\n`;
-  code += `const packageModule = require("${main_file}");\n`;
+  code += `const packageModule = require("${packageName}");\n`;
   code += `const fs = require('fs')\n\n`;
 
   code += `process.on('unhandledRejection', function(reason, p){\n`;
@@ -302,6 +290,7 @@ function generateFuzzCode(packageName, packageModule) {
   for (const [exportName, exportInfo] of Object.entries(exports)) {
     // TODO check recursively for functions with properties
     const result = generateFuzzParamsCall(exportName, exportInfo);
+    console.log(result)
     if (result != '') {
       hasFunctions = true;
       code += result;
@@ -326,7 +315,7 @@ function generateTaintCode(packageName, packageModule) {
   const main_file = `${getMainFilePackage(packagePath)}`;  
 
   let code = `const { FuzzedDataProvider } = require("@jazzer.js/core");\n`;
-  code += `const packageModule = require("${main_file}");\n`;
+  code += `const packageModule = require("${packageName}");\n`;
   code += `const fs = require('fs')\n\n`;
 
   // Generate the fuzz function
