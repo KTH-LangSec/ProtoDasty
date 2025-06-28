@@ -130,19 +130,6 @@ class TaintProxyHandler {
                 if (!this.__x_val) return;
                 let newVal = this.__x_val[prop](...arguments);
 
-                // const args = [...arguments];
-                // if (checkTaintedArgs(args)) {            
-                //     const newArgs = [];
-                //     args.forEach((arg, index) => {
-                //         if (!arg) return;
-                //         if (!arg.__x_val) newArgs[index] = arg;
-                //         else newArgs[index] = arg.__x_val;
-                //     })
-                //     // TODO how to call the function if more than 1 arguments????
-                //     newVal1 = this.__x_val[prop].apply(null, newArgs);
-                //     console.log("newValue", newVal1.__x_val)
-                // }
-
                 if (this.__x_type === 'array' && this.__x_val.length !== preLength) {
                     // record side effects (e.g. Array.push)
                     this.__x_taint.codeFlow.push(createCodeFlow(null, 'functionSideEffect', prop));
@@ -348,6 +335,7 @@ class TaintProxyHandler {
             }
             return Reflect.set(target, prop, value.__x_val, receiver.__x_val);
         }
+        console.log(target, prop, value, receiver)
         return Reflect.set(target, prop, value, receiver);
     }
 

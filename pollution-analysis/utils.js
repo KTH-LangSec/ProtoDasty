@@ -391,10 +391,10 @@ function taintCompResult(left, right, op) {
         otherVal = otherVal.__x_val;
     }
 
-    if ((taintVal == undefined || taintVal == null) ||  
-        (otherVal == undefined || otherVal == null)) {
-        return taintVal === otherVal;
-    }
+    // if ((taintVal == undefined || taintVal == null) ||  
+    //     (otherVal == undefined || otherVal == null)) {
+    //     return taintVal === otherVal;
+    // }
 
     switch (op) {
         case '===':
