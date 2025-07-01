@@ -8,7 +8,6 @@ async function generateFuzzTarget(packageName, outputPath) {
     // Dynamically require the package to analyze
     const packagePath = `${__dirname}/../packages/${packageName}`;
     const packageModule = await import(packageName);
-    console.log(packageModule)
 
     // Generate the fuzzing code
     const fuzzCode = generateFuzzCode(packageName, packageModule);
@@ -290,7 +289,6 @@ function generateFuzzCode(packageName, packageModule) {
   for (const [exportName, exportInfo] of Object.entries(exports)) {
     // TODO check recursively for functions with properties
     const result = generateFuzzParamsCall(exportName, exportInfo);
-    console.log(result)
     if (result != '') {
       hasFunctions = true;
       code += result;
