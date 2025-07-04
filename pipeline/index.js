@@ -378,7 +378,7 @@ async function runAnalysisNodeWrapper(analysis, dir, initParams, exclude, execFi
             });
         }
         
-        let fuzz_runs = 10000
+        let fuzz_runs = 1000
         let npx_command = `npx jazzer ${driverDir}/FuzzTarget --sync --coverage -- -rss_limit_mb=4096 -runs=${fuzz_runs}`
         console.log("\n\nExecuting Fuzzing with Jazzer\n\n");
         // todo exec jazzer to get fuzzing inputs
@@ -906,7 +906,7 @@ async function runPipeline(pkgName) {
         }
 
         try {
-            await cmd("npm uninstall", pkgName);
+            await cmd("npm", "uninstall", pkgName);
         } catch (e) {
             throw e;
         }
