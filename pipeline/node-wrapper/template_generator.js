@@ -203,10 +203,12 @@ function generateTaintFuncCall(exportName, exportInfo) {
   if (exportInfo.type === 'function') {
     if (exportName === '__main__pkg') {
       code += `        case "__main__pkg":\n`;
+      code += `          packageModule.__x_toTaint = true;\n`;
       code += `          packageModule(...args);\n`;
       code += `          break;\n`;
     } else {
       code += `        case "${exportName}":\n`;
+      code += `          packageModule.${exportName}.__x_toTaint = true;\n`;
       code += `          packageModule.${exportName}(...args);\n`;
       code += `          break;\n`;
     }
@@ -352,7 +354,7 @@ function generateTaintCode(packageName, packageModule) {
   }
 
   code += `        default:\n`;
-  code += `          console.log("Danger!!!!! Function not found!");\n`;
+  code += `          console.log("Danger!!!!! Function not found! -", func_name);\n`;
   code += `      }\n`;
   code += `    } catch (e) {\n      // pass errors\n    }\n\n`;
 
