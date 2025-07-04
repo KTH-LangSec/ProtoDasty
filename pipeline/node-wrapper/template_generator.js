@@ -273,6 +273,8 @@ function generateFuzzCode(packageName, packageModule) {
   code += `process.on('uncaughtException', function(error) {\n`;
   code += `  // call handler\n`;
   code += `});\n\n`;
+
+  code += `fs.writeFileSync(__dirname + "/fuzzing_results.json", '[]');`
   
   // Generate the fuzz function
   code += `// file "FuzzTarget.js"\n`;
