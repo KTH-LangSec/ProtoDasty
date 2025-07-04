@@ -38,8 +38,10 @@ class PollutionAnalysis {
     };
     
     unary = (iid, op, left, result) => {
+        if (left === undefined || left === null) return;
         // change typeof of tainted object to circumvent type checks
         if (!isTaintProxy(left) && !isProtoTaintProxy(left) && !isPropertyTaintProxy(left)) return;
+        if (left.__x_val === undefined || left.__x_val === null) return;
         switch (op) {
             case 'typeof':
                 /* if we don't know the type yet return the proxy object and an information that it is the result of typeof
@@ -371,15 +373,15 @@ class PollutionAnalysis {
             }
         }
 
-        if (f.name == 'require') {
+        //if (f.name == 'require') {
             // ToDo: verify how to check if it really belongs to the package being analysed
             // if ((overlapFunctionPackage(args[0], this.pkgName) || args[0] == this.jsonPkgName) &&
-            if (checkSubFolderImport(this.jsonPkgName, args[0]) &&
-            (typeof res === 'function' || typeof res === 'object')) {
-                console.log("\tFunction:", f.name, args);
-                res.__x_toTaint = true;
-            }
-        }
+        //    if (checkSubFolderImport(this.jsonPkgName, args[0]) &&
+        //    (typeof res === 'function' || typeof res === 'object')) {
+        //        console.log("\tFunction:", f.name, args);
+        //        res.__x_toTaint = true;
+        //    }
+        //}
 
     };
     
