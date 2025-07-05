@@ -7,7 +7,6 @@ mongoose
 uglify-js
 commander
 axios
-fs-extra
 moment
 debug
 async
