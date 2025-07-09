@@ -4,5 +4,6 @@
 
    
 
+  Object.merge.__x_toTaint = true;
   Object.merge({}, JSON.parse('{"__proto__": {"polluted": "yes"}}'));
 // End of file

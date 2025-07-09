@@ -5,6 +5,7 @@
 
    
 
+  g.add.__x_toTaint = true;
   g.add({
     graph: "foo",
     subject: "__proto__",

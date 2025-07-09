@@ -5,5 +5,6 @@
 
    
 
+  mout.object.set.__x_toTaint = true;
   mout.object.set(obj, "__proto__.polluted", "yes");
 // End of file

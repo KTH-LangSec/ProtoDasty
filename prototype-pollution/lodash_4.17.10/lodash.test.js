@@ -4,5 +4,6 @@
   const payload = '{"constructor": {"prototype": {"polluted": "yes"}}}';
    
 
+  mergeFn.__x_toTaint = true;
   mergeFn({}, JSON.parse(payload));
 // End of file

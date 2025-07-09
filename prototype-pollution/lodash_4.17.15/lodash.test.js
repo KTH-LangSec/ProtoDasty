@@ -6,7 +6,5 @@
 
   delete obj.__proto__.polluted; // deletes the property set by this pollution
 
-
-  const lod = require("lodash");
-
   lod.setWith({}, "__proto__[polluted]", "yes");
+zz

@@ -4,6 +4,7 @@
   const obj = {};
 
    
-
+  
+  utils.object.keypath.set.__x_toTaint = true;
   utils.object.keypath.set(obj, "__proto__.polluted", "yes");
 // End of file

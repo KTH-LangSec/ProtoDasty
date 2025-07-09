@@ -6,5 +6,6 @@
 
    
 
+  swiper.default.extendDefaults.__x_toTaint = true;
   swiper.default.extendDefaults(JSON.parse(malicious_payload));
 // End of file

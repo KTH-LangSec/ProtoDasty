@@ -7,5 +7,6 @@
 
    
 
+  util.mergeConfig.__x_toTaint = true;
   util.mergeConfig(config, JSON.parse(malicious_payload));
 // End of file

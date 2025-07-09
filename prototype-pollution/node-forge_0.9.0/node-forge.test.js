@@ -4,5 +4,6 @@
 
   const nodeforge = require("node-forge");
   const obj = {};
+  nodeforge.util.setPath.__x_toTaint = true;
   nodeforge.util.setPath(obj, ["__proto__", "polluted"], "yes");
 // End of file

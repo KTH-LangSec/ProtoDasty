@@ -3,5 +3,6 @@
   const objectPath = require("object-path");
 
    
+  objectPath.withInheritedProps.set.__x_toTaint = true;
   objectPath.withInheritedProps.set({}, [["__proto__"], "polluted"], "yes");
 // End of file

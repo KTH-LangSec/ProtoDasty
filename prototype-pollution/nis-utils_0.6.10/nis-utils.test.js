@@ -6,5 +6,6 @@
   const object1 = {};
    
 
+  nisUtils.object.setValue.__x_toTaint = true;
   nisUtils.object.setValue({}, "__proto__.polluted", "yes");
 // End of file

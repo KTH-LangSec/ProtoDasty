@@ -4,6 +4,9 @@
    
 
   let a = {};
-  var prototype_pollution_ 
-  merge(a, prototype_pollution_
+
+  var prototype_pollution_test = JSON.parse('{"__proto__":{"polluted":"yes"}}');
+
+  merge(a, prototype_pollution_test);
+
 // End of file

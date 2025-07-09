@@ -4,6 +4,6 @@
   let payload = JSON.parse('{"__proto__": {"polluted": "yes"}}');
 
    
-
+  algohelp.SearchParameters._parseNumbers.__x_toTaint = true;
   algohelp.SearchParameters._parseNumbers(payload); // {}
 // End of file

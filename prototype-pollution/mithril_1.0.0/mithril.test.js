@@ -1,6 +1,6 @@
 //https://snyk.io/vuln/SNYK-JS-MITHRIL-460113
  
-  require("mithril/ 
+  require("mithril/test-utils/browserMock")(global);
   const m = require("mithril");
   obj = {};
 
