@@ -8,7 +8,6 @@ TOTAL_TESTS=0
 COMPLETED_TESTS=0
 DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 
-
 display_usage() {
   echo "Usage: $0 <directory>"
   exit 1
@@ -35,7 +34,7 @@ if [[ $FRESH == true ]]; then
 fi
 
 # Count total number of tests
-TOTAL_TESTS=192
+TOTAL_TESTS=185
 
 # Function to display a progress bar
 draw_progress_bar() {
@@ -85,17 +84,53 @@ traverse_and_execute() {
       return
     fi
 
+    if [[ "$test_name" == worksmith ]]; then
+      echo -e "\e[33mFile Already Analyzed with Prototype Pollution\e[0m"
+      ((COMPLETED_TESTS++))
+      ((COUNTER++))
+      draw_progress_bar
+      return
+    fi
+
     # Change to the directory
     (
       cd "$dir" &&
         echo "  1 -> Installing dependencies..." &&
         npm install &>/dev/null &&
         echo "  2 -> Running tests..." &&
-        CMD="node /home/mateus/Dasty/pipeline/index.js --forceProcess --onlyPollution --execFile $dir$test_name.test.js $test_name &> $output_file" &&
+        CMD="node /home/mateus/Dasty/pipeline/index.js --forceProcess --noInstall --force --onlyPollution --execFile $dir$test_name.test.js $test_name &> $output_file" &&
         eval "$CMD"
     )
 
     echo "Output saved to: $output_file"
+
+    # Check if script is "Don't analyse"
+    if grep -q "is a 'don't analyse' script" "$output_file"; then
+      echo -e "\e[33m $test_name is don't analyse script.\e[0m"
+      echo "$test_name" >>"unsuported_pkgs.txt"
+    fi
+
+    # Check if we find require function
+    if ! grep -q "Function: require" "$output_file"; then
+      echo -e "\e[33m $test_name doesn't import correctly.\e[0m"
+      echo "$test_name" >>"not_polluted.txt"
+    fi
+
+    if grep -q -i "error" "$output_file"; then
+      echo -e "\e[33m $test_name ends in error!\e[0m"
+      echo "$test_name" >>"errors.txt"
+    fi
+
+    if grep -q "Function: require" "$output_file" && ! grep -q "!! Polluted !!" "$output_file"; then
+      echo -e "\e[33m $test_name doesn't pollute correctly.\e[0m"
+      echo "$test_name" >>"not_tainted.txt"
+    fi
+
+    # Check if we find require function
+    if grep -q "readFile" "$output_file"; then
+      echo -e "\e[33m $test_name uses readFile.\e[0m"
+      echo "$test_name" >>"read_files.txt"
+    fi
 
     # Check if the output file contains "Found Prototype Pollution"
     if grep -q "Found Prototype Pollution" "$output_file"; then
@@ -110,7 +145,7 @@ traverse_and_execute() {
     fi
 
     if [ "$counted" = false ]; then
-      echo "$test_name" >>  "log_$DATE.txt"
+      echo "$test_name" >>"log_$DATE.txt"
     fi
     # Increment completed tests and update progress bar
     ((COMPLETED_TESTS++))
