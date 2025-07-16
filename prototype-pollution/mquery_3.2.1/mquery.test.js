@@ -5,6 +5,6 @@
   var payload = JSON.parse('{"__proto__": {"polluted": "yes"}}');
 
    
-
+  mquery.__x_toTaint = true;
   var m = mquery(payload);
 // End of file
