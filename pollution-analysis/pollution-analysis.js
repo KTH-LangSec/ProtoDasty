@@ -373,15 +373,15 @@ class PollutionAnalysis {
             }
         }
 
-        //if (f.name == 'require') {
-            // ToDo: verify how to check if it really belongs to the package being analysed
-            // if ((overlapFunctionPackage(args[0], this.pkgName) || args[0] == this.jsonPkgName) &&
-        //    if (checkSubFolderImport(this.jsonPkgName, args[0]) &&
-        //    (typeof res === 'function' || typeof res === 'object')) {
-        //        console.log("\tFunction:", f.name, args);
-        //        res.__x_toTaint = true;
-        //    }
-        //}
+        if (f.name == 'require') {
+          // ToDo: verify how to check if it really belongs to the package being analysed
+          // if ((overlapFunctionPackage(args[0], this.pkgName) || args[0] == this.jsonPkgName) &&
+            if (checkSubFolderImport(this.jsonPkgName, args[0]) &&
+            (typeof res === 'function' || typeof res === 'object')) {
+                console.log("\tFunction:", f.name, args);
+                res.__x_toTaint = true;
+            }
+        }
 
     };
     
