@@ -142,6 +142,7 @@ traverse_and_execute() {
 
     if [ "$counted" = true ]; then
       ((COUNTER++))
+      echo "$test_name" >>"log_true_$DATE.txt"
     fi
 
     if [ "$counted" = false ]; then
