@@ -307,7 +307,7 @@ class PollutionAnalysis {
                             const newArg = createTaintVal(
                                 iid,
                                 `argument_${index}`,
-                                {iid: iid, entryPoint: []},
+                                {iid: iid, entryPoint: [f?.name], args: [arg]},
                                 arg,
                                 typeof arg
                             );

@@ -111,7 +111,8 @@ const CLI_ARGS = {
     '--processNr': 1,
     '--forceProcess': 0,
     '--forceSetup': 0,
-    '--onlyPollution': 0
+    '--onlyPollution': 0,
+    '--noInstall' : 0
 }
 
 // Set default values (also so that the ide linter shuts up)
@@ -145,7 +146,8 @@ let cliArgs = {
     processNr: 1,
     forceProcess: false,
     forceSetup: false,
-    onlyPollution: false
+    onlyPollution: false,
+    noInstall: false
 };
 
 let driverDir = null; // the directory containing the driver - depends on 'processNr'
@@ -860,10 +862,12 @@ async function runPipeline(pkgName) {
             });
         }
 
-        try {
-            await cmd("npm", "install", pkgName);
-        } catch (e) {
-            throw e;
+        if (!cliArgs.noInstall) {
+            try {
+                await cmd("npm", "install", pkgName);
+            } catch (e) {
+                throw e;
+            }
         }
 
         let _jsonPkgName = null;
@@ -887,12 +891,8 @@ async function runPipeline(pkgName) {
         );
 
         try {
-            // TODO add execStatus
-            // const execStatuses = parseExecStatuses();
+            console.error("Writting to DB")
             const result = await writePollutionToDB(pkgName, resultFilename, cliArgs.pollutionCollection, cliArgs.collPrefix);
-            // dbResultId = result.resultId;
-            // runId = result.runId;
-            // noFlows = result.noFlows;
 
             console.error('\nCleaning up result files');
             try {
@@ -905,10 +905,12 @@ async function runPipeline(pkgName) {
             console.error("ERROR WRITING", resultFilename, "\n", error);
         }
 
-        try {
-            await cmd("npm", "uninstall", pkgName);
-        } catch (e) {
-            throw e;
+        if (!cliArgs.noInstall) {
+            try {
+                await cmd("npm", "uninstall", pkgName);
+            } catch (e) {
+                throw e;
+            }
         }
 
         if (cliArgs.onlyPollution) return;
