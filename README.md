@@ -230,6 +230,8 @@ node index.js --sarif --allTaints --outDir /path/to/sarif-dir/
 | `--forceSetup`                         | Force the setup phase of a package. Usually the setup is skipped when the package is already present.                            |
 | `--sinkAnalysis`                       | Enables a run identifying *special* sinks that trigger *universal* gadgets.                                                      |
 | `--onlySinkAnalysis`                   | Run only the special sink analysis                                                                                               |
+| `--onlyPollution`                      | Enables a run where the fuzzing step of the pipeline is skipped.                                                                 |
+| `--noInstall`                          | Skip the installation phase of the pipeline                                                                                      |
 
 #### Sarif export
 
