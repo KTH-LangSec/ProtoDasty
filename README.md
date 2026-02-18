@@ -1,43 +1,65 @@
-# Dasty: Dynamic Taint Analysis Tool for Prototype Pollution Gadgets Detection
+# ProtoDasty: Multi‑label Dynamic Taint Analysis for Prototype Pollution Detection
 
-Dasty is a performant dynamic taint analysis tool for the detection of [prototype pollution gadgets](https://github.com/yuske/server-side-prototype-pollution) in Node.js
-applications. It is a prototype implementation of the approach described in
-my [Master's thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:kth:diva-337039) and
-the [paper](https://arxiv.org/abs/2311.03919).
-The implementation is based on instrumentation with [NodeProf by Sun et al](https://github.com/Haiyang-Sun/nodeprof.js).
+ProtoDasty is a dynamic taint analysis tool designed to detect prototype pollution flows in Node.js packages. It extends the earlier Dasty tool with a multi‑label tainting model (Basic → Proto → Property) and focuses on identifying pollutable prototype‑access flows rather than prototype‑pollution gadgets. ProtoDasty is built on NodeProf atop the Truffle Instrumentation Framework and runs on GraalJS / GraalVM.
+This repository accompanies my Master’s thesis: [PLACEHOLDER_THESIS_URL]. ProtoDasty integrates partially with Dasty’s pipeline (e.g., pre‑analysis, package setup) while introducing a new prototype‑pollution detection engine and an optional fuzzing‑based test‑case generator.
 
 ## Overview
 
-Dasty reports flows from pollutable prototype properties to potentially dangerous function calls. Concretely, Dasty
-defines as sources every object property access (dot or brackets notation) that access `Object.prototype`. Sinks
-are defined as all Node.js API calls except the functions of the `assert` module. A recorded flow contains the code
-locations of the source, the sink, and the code flow, i.e. all operations it was propagated through. Dasy also records
-flows that trigger *universal* gadgets (see the paper [here](https://arxiv.org/abs/2207.11171v1)).
+ProtoDasty reports flows that could lead to prototype pollution. Unlike the original Dasty—which detects gadgets that become dangerous after a prototype is polluted—ProtoDasty identifies the pollution itself.
 
-The flows are stored in a MongoDB database and can be exported as [Sarif](https://sarifweb.azurewebsites.net/) files for
-convenient analysis.
+#### Sources
+ProtoDasty treats all exported functions of a package as attacker‑controlled entry points. Every argument of an exported function is assigned a Basic Taint.
 
-Dasty can be run on a specific file or leverage the test suits of an application as a basis for the analysis. In
-addition,
-it provides a pipeline to automatically install and analyze npm packages.
+#### Multi‑Label Tainting Model
+ProtoDasty tracks taints through program operations using a three‑tier taint system:
 
-### Analysis Phases
+- **Basic Taint** — assigned to every function argument (attacker‑controlled).
+- **Proto Taint** — created when an access is made through a tainted property that could reference a prototype (e.g., __proto__, constructor).
+- **Property Taint** — created when accessing a property on a tainted prototype, or via constructor.prototype.
 
-A complete analysis consists of three phases:
+Internally, taints are implemented using JavaScript Proxy objects, intercepting traps such as:
 
-1. A pre-analysis that determines if the analyzed packages are intended to be used on the server by looking for Node.js
-   API calls. Only if this is the case the analysis is continued. This filtering can be skipped if not needed by
-   specifying the `--noPre` flag.
-2. The *unintrusive* taint analysis runs the provided application once. It aims to record all gadgets that do not rely
-   on control flow alteration.
-3. Finally, the *forced branch execution* taint analysis selectively conducts multiple runs in which the control flow
-   of the program is altered based on polluted prototype properties. Through forced branch execution Dasty is able to
-   detect flows that rely on multiple polluted properties.
+- get (property access)
+- set (writes)
+- ownKeys (for `for ... in` loops)
+- forEach (callbacks receive tainted values)
+
+#### Sink Definition
+A sink is any assignment that would write to a prototype given appropriate attacker‑controlled inputs. Examples:
+
+- `base[offset] = val` where `base` has a Proto or Property Taint
+- `base[offset] = object` when replacing a full object
+- Access patterns such as `obj["__proto__"]`, `obj.constructor.prototype`, etc.
+
+ProtoDasty does not require the prototype to actually be polluted in the current run - it flags potentially polluting flows.
+
+#### Flow Storage
+
+Each identified flow stores:
+
+- **Source** (entry point + argument index)
+- **Entry point context**
+- **Code Flow** (sequence of operations taint passed through)
+- **Sink** (write operation)
+
+Flows are saved immediately as JSON and also persisted via a database layer for efficient verification.
+
+### Analysis Modes
+ProtoDasty supports two modes:
+
+- **Fuzzing Mode**:
+   - Pre-analysis → Fuzzing → Taint Analysis → Verification
+   - Fuzzing uses a coverage‑guided fuzzer to generate diverse inputs.
+
+- **Test‑Driven Mode**:
+   - Direct taint analysis of user‑provided scripts
+   - No fuzzing, ideal for curated tests or known vulnerable flows.
+
 
 ## Installation
 
-Dasty utilizes NodeProf which is built on top of the Truffle Instrumentation Framework and the GraalVM. If you encounter
-any problems during the installation process please refer to their documentation.
+ProtoDasty relies on NodeProf, GraalVM, and GraalJS. If your installation encounters issues, consult their documentation.
+If you encounter any problems during the installation process please refer to their documentation.
 
 ### Prerequisites
 
@@ -96,19 +118,20 @@ export GRAAL_NODE=/path/to/nodeprof-graalvm/graal/sdk/latest_graalvm_home/bin/no
 export NODEPROF_HOME=/path/to/nodeprof-graalvm/nodeprof.js/
 ```
 
-### Install Dasty
+### Install ProtoDasty
 
 #### 1. Setup
 
 ```bash
-git clone https://github.com/pmoosi/Dasty.git
-cd /path/to/dasty
+git clone https://github.com/KTH-LangSec/ProtoDasty.git
+cd /path/to/proto_dasty
 npm install
 ```
 
-#### 2. Install MongoDB on your system. You can follow the installation guide [here](https://www.mongodb.com/docs/manual/installation/#mongodb-installation-tutorials).
+#### 2. Install MongoDB on your system.
+You can follow the installation guide [here](https://www.mongodb.com/docs/manual/installation/#mongodb-installation-tutorials).
 
-#### 3. Configure [`pipeline/db/conn.js`](`pipeline/db/conn.js`)
+Configure [`pipeline/db/conn.js`](`pipeline/db/conn.js`)
 
 ## Usage
 
